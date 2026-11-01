@@ -43,8 +43,13 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font-body);line-hei
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px))}
 header h1{font-family:var(--font-disp);font-weight:600;font-size:clamp(1.7rem,5vw,2.4rem);
-  margin:0;letter-spacing:-.01em;text-wrap:balance}
+  margin:0;letter-spacing:-.01em;text-wrap:balance;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 header h1 .sun{color:var(--sun)}
+.installbtn{font-family:var(--font-body);font-size:.82rem;font-weight:600;cursor:pointer;
+  background:var(--accent);color:#fff;border:none;border-radius:999px;padding:7px 14px;
+  box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 35%,transparent);white-space:nowrap}
+.installbtn:hover{filter:brightness(1.06)}
+.installbtn:active{transform:translateY(1px)}
 .lead{color:var(--muted);margin:.3em 0 0;max-width:60ch}
 .disclaimer{margin:28px 0 8px;padding-top:14px;border-top:1px solid var(--line);
   color:var(--muted);font-size:.74rem;line-height:1.5}
@@ -229,8 +234,9 @@ input[type=search]{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(
 
 <div class="wrap">
   <header>
-    <h1><span class="sun">☀</span> Sunshine Rechenhilfe</h1>
-    <p class="lead">Ernte-Erträge nach Feldstufe und Produktionsmengen nach Gebäudelevel — alle Werte aus dem Spiel ausgelesen.</p>
+    <h1><span class="sun">☀</span> Sunshine Rechenhilfe
+      <button id="installBtn" class="installbtn" hidden>📲 Installieren</button>
+    </h1>
   </header>
 
   <div class="profilbar"><span class="pbtxt">👤 Spieler</span><div class="profile" id="profile"></div></div>
@@ -1095,6 +1101,32 @@ function zeichneProfilLeiste(){
     });
   });
 }
+
+// ===== Installieren-Button (PWA) =====
+(function(){
+  const btn=$("#installBtn"); if(!btn) return;
+  let deferred=null;
+  // Schon als App gestartet? Dann Button verstecken.
+  const imStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone===true;
+  const istIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  window.addEventListener("beforeinstallprompt",e=>{
+    e.preventDefault(); deferred=e; if(!imStandalone) btn.hidden=false;
+  });
+  // iOS liefert kein beforeinstallprompt -> Button zeigen + Anleitung
+  if(istIOS && !imStandalone) btn.hidden=false;
+  btn.addEventListener("click",async()=>{
+    if(deferred){
+      deferred.prompt();
+      try{ await deferred.userChoice; }catch(e){}
+      deferred=null; btn.hidden=true;
+    } else if(istIOS){
+      alert("Zum Installieren in Safari:\n\n1. Unten (oder oben) auf das Teilen-Symbol tippen ↑\n2. „Zum Home-Bildschirm“ wählen\n3. Hinzufügen");
+    } else {
+      alert("Zum Installieren im Browser-Menü (⋮) „App installieren“ bzw. „Zum Startbildschirm hinzufügen“ wählen.");
+    }
+  });
+  window.addEventListener("appinstalled",()=>{ btn.hidden=true; });
+})();
 
 // Start: Profil + Inseln laden, aktiven state setzen, zeichnen
 ladeProfilMeta();
