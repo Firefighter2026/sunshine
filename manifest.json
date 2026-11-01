@@ -1,0 +1,17 @@
+{
+  "name": "Sunshine Rechenhilfe",
+  "short_name": "Sunshine",
+  "description": "Ernte- und Produktionsrechner – Mengen nach Feldstufe und Gebäudelevel.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3efe4",
+  "theme_color": "#f3efe4",
+  "lang": "de",
+  "icons": [
+    { "src": "icons/app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/app-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

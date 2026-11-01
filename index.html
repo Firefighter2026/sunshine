@@ -1,0 +1,1106 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3efe4">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/app-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sunshine">
+<style>
+:root{padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+*{box-sizing:border-box}
+body{margin:0;font:14px system-ui,-apple-system,sans-serif;background:#f3efe4}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<title>Sunshine Rechenhilfe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: ruhige App-Oberflaeche, eine Spalte Produktkarten; sonnig-warme Insel-Palette */
+:root{
+  --bg:#f3efe4; --surface:#fffdf7; --surface2:#f7f2e6; --line:#e3dac3;
+  --ink:#2b2a22; --muted:#7c7560; --accent:#2f8f5b; --accent-ink:#1c6b41;
+  --fein:#9a5b1e; --sofort:#b23a2e; --sun:#e8a93a; --chip:#efe8d6;
+  --font-disp:"Fraunces","Georgia",serif;
+  --font-body:"Figtree",system-ui,-apple-system,sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1c1a14; --surface:#262318; --surface2:#2f2b1e; --line:#3d3828;
+  --ink:#f0ead8; --muted:#a79e84; --accent:#57c487; --accent-ink:#8fe0b2;
+  --fein:#d79a53; --sofort:#ef7f71; --sun:#e8a93a; --chip:#332f20; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#1c1a14; --surface:#262318; --surface2:#2f2b1e; --line:#3d3828;
+  --ink:#f0ead8; --muted:#a79e84; --accent:#57c487; --accent-ink:#8fe0b2;
+  --fein:#d79a53; --sofort:#ef7f71; --sun:#e8a93a; --chip:#332f20; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);line-height:1.5}
+.wrap{max-width:860px;margin:0 auto;padding-block:24px 64px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px))}
+header h1{font-family:var(--font-disp);font-weight:600;font-size:clamp(1.7rem,5vw,2.4rem);
+  margin:0;letter-spacing:-.01em;text-wrap:balance}
+header h1 .sun{color:var(--sun)}
+.lead{color:var(--muted);margin:.3em 0 0;max-width:60ch}
+.disclaimer{margin:28px 0 8px;padding-top:14px;border-top:1px solid var(--line);
+  color:var(--muted);font-size:.74rem;line-height:1.5}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+  padding:16px;margin-top:20px}
+.controls{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center}
+.ck{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:.95rem}
+.ck input{width:17px;height:17px;accent-color:var(--accent)}
+.runen{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.9rem;color:var(--muted)}
+.bonusbox{display:inline-flex;align-items:center}
+.bonusbox select{border:1px solid var(--line);border-radius:999px;padding:5px 12px;
+  background:var(--chip);color:var(--ink);font-family:var(--font-num);font-size:.95rem;cursor:pointer}
+input[type=search]{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--line);
+  border-radius:9px;background:var(--surface2);color:var(--ink);font:inherit}
+.hint{font-size:.82rem;color:var(--muted);margin:12px 0 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-top:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:13px;
+  padding:13px 14px;display:flex;flex-direction:column;gap:9px;min-width:0}
+.card h3{margin:0;font-family:var(--font-disp);font-weight:600;font-size:1.12rem;
+  display:flex;align-items:center;gap:8px;min-width:0}
+.card h3 .pname{flex:1 1 auto;min-width:0;overflow-wrap:break-word;font-size:clamp(.92rem,2.6vw,1.12rem)}
+.card h3 .ic{height:42px;width:auto;max-width:70px;object-fit:contain;flex:none;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.15))}
+.card h3 .ic.ph{width:38px;height:38px}
+.card h3 .ic.ph{background:var(--chip);border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-family:var(--font-disp);font-weight:600;color:var(--muted);font-size:1.1rem}
+.card h3 .pname{line-height:1.1}
+.geb{font-family:var(--font-body);font-size:.72rem;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--muted);font-weight:500}
+.vals{display:flex;gap:14px;align-items:flex-end;font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.v{display:flex;flex-direction:column;gap:1px}
+.v .lab{font-family:var(--font-body);font-size:.68rem;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--muted)}
+.v .n{font-size:1.18rem;font-weight:600}
+.v.E .n{color:var(--accent-ink)} .v.F .n{color:var(--fein)} .v.S .n{color:var(--sofort)} .v.MIST .n{color:#9c6b3f}
+.v.MIST .lab{padding:0;background:none}
+.v.MIST .labpik{display:block;height:1.3rem;width:auto;margin-bottom:2px}
+.card{cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.card:hover{border-color:var(--accent)}
+.card.open{cursor:default;border-color:var(--accent);
+  box-shadow:0 2px 14px color-mix(in srgb,var(--accent) 18%,transparent)}
+.cnt{font-family:var(--font-num);font-size:.72rem;color:var(--muted);margin-left:auto;font-weight:400}
+.card h3 .gebic{height:60px;width:auto;max-width:92px;object-fit:contain;margin:-8px -2px -8px auto;flex:none}
+.tap{font-size:.74rem;color:var(--muted);margin-top:-2px}
+.row2{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:2px}
+.menge{display:inline-flex;align-items:center;gap:7px;font-size:.9rem;color:var(--muted)}
+.menge input{width:62px;font-family:var(--font-num);padding:5px 8px;border:1px solid var(--line);
+  border-radius:7px;background:var(--surface2);color:var(--ink);text-align:right;font-size:.95rem}
+/* Detail-Panel in der Kachel */
+.detail{margin-top:4px;padding-top:12px;border-top:1px dashed var(--line);display:flex;
+  flex-direction:column;gap:10px}
+.detail .dh{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+/* Liste einzelner Felder – zwei Reihen je Feld */
+.felder{display:flex;flex-direction:column;gap:9px}
+.feldzeile{display:flex;flex-direction:column;gap:7px;
+  background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:9px 10px}
+/* Mehrfach-Gebäude-Zeile (Produktion): eine Reihe, umbrechbar, kein Überlauf */
+.gebzeile{display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+  background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+.gebzeile .fnr{font-family:var(--font-num);font-size:.8rem;color:var(--muted);min-width:1.3em;flex:0 0 auto}
+.gebzeile select{font-family:var(--font-num);padding:5px 8px;border:1px solid var(--line);
+  border-radius:7px;background:var(--surface);color:var(--ink);font-size:.95rem;flex:0 0 auto}
+.gebzeile .gmenge{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);flex:0 0 auto}
+.gebzeile .gmenge input{width:54px;font-family:var(--font-num);padding:5px 7px;border:1px solid var(--line);
+  border-radius:7px;background:var(--surface);color:var(--ink);font-size:.95rem}
+.gebzeile .fprod{font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-size:1.05rem;font-weight:600;color:var(--accent-ink);margin-left:auto;flex:0 0 auto}
+.gebzeile .delf{flex:0 0 auto}
+.fz-top{display:flex;align-items:center;gap:9px;min-width:0}
+.fz-top select{max-width:100%;min-width:0;text-overflow:ellipsis}
+.feldzeile .fnr{font-family:var(--font-num);font-size:.8rem;color:var(--muted);min-width:1.4em}
+.feldzeile select{font-family:var(--font-num);padding:5px 8px;border:1px solid var(--line);
+  border-radius:7px;background:var(--surface);color:var(--ink);font-size:.95rem}
+.feldzeile .fprod{font-family:var(--font-num);font-variant-numeric:tabular-nums;
+  font-size:1.05rem;font-weight:600;margin-left:auto}
+.feldzeile .fprod.mE{color:var(--accent-ink)}
+.feldzeile .fprod.mF{color:var(--fein)}
+.feldzeile .fprod.mS{color:var(--sofort)}
+.feldzeile .fprod .est{font-size:.72rem;font-weight:400;font-style:italic;margin-left:2px}
+.delf{font:inherit;font-size:1rem;line-height:1;color:var(--sofort);background:none;border:none;
+  cursor:pointer;padding:3px 6px;border-radius:6px;flex:none}
+.delf:hover{background:color-mix(in srgb,var(--sofort) 15%,transparent)}
+/* Modus-Umschalter Normal/Fein/Sofort – volle Breite, eigene Reihe */
+.modus{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;width:100%}
+.modus button{flex:1;font:inherit;font-size:.82rem;font-weight:600;padding:6px 4px;border:none;
+  background:var(--surface);color:var(--muted);cursor:pointer;line-height:1.4}
+.modus button+button{border-left:1px solid var(--line)}
+.modus button[aria-pressed="true"][data-mode="E"]{background:var(--accent);color:#fff}
+.modus button[aria-pressed="true"][data-mode="F"]{background:var(--fein);color:#fff}
+.modus button[aria-pressed="true"][data-mode="S"]{background:var(--sofort);color:#fff}
+.delf{font:inherit;font-size:1rem;line-height:1;color:var(--sofort);background:none;border:none;
+  cursor:pointer;padding:2px 5px;border-radius:6px}
+.delf:hover{background:color-mix(in srgb,var(--sofort) 15%,transparent)}
+.addf{align-self:flex-start;font:inherit;font-size:.9rem;font-weight:600;color:var(--accent-ink);
+  background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid var(--line);
+  border-radius:9px;padding:7px 13px;cursor:pointer}
+.addf:hover{background:color-mix(in srgb,var(--accent) 20%,transparent)}
+.menge input{width:70px;font-family:var(--font-num);padding:6px 9px;border:1px solid var(--line);
+  border-radius:8px;background:var(--surface2);color:var(--ink);text-align:right;font-size:1rem}
+.detail .zeile{display:flex;justify-content:space-between;align-items:center;font-size:.85rem}
+.clearbtn{font:inherit;font-size:.82rem;color:var(--sofort);background:none;border:none;
+  cursor:pointer;padding:2px 4px;text-decoration:underline}
+.badge{font-size:.68rem;padding:1px 7px;border-radius:999px;font-weight:600;letter-spacing:.03em}
+.badge.exakt{background:color-mix(in srgb,var(--accent) 20%,transparent);color:var(--accent-ink)}
+.badge.fest{background:color-mix(in srgb,var(--sun) 25%,transparent);color:var(--fein)}
+.est{font-size:.72rem;color:var(--muted);font-style:italic}
+.foot{margin-top:28px;font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);
+  padding-top:16px;line-height:1.6}
+.foot b{color:var(--ink);font-weight:600}
+.sumbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);
+  border:1px solid var(--line);border-radius:12px;padding:11px 15px;margin-top:18px;
+  display:flex;gap:18px;align-items:baseline;flex-wrap:wrap;font-family:var(--font-num);
+  font-variant-numeric:tabular-nums}
+.sumbar .t{font-family:var(--font-body);color:var(--muted);font-size:.8rem;
+  text-transform:uppercase;letter-spacing:.06em}
+.sumbar .big{font-size:1.3rem;font-weight:600;color:var(--accent-ink)}
+.sumbar .bigF{font-size:1.3rem;font-weight:600;color:var(--fein)}
+.sumbar .bigS{font-size:1.3rem;font-weight:600;color:var(--sofort)}
+.sumbar .bigMist{font-size:1.3rem;font-weight:600;color:#9c6b3f}
+.sumbar .mistpik{width:1.5rem;height:1.5rem;vertical-align:middle;margin-right:4px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+/* Insel-Umschalter */
+.inseln{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;align-items:stretch}
+.insel{display:flex;align-items:center;gap:6px;background:var(--surface);
+  border:1px solid var(--line);border-radius:11px;padding:4px 6px 4px 12px;cursor:pointer;
+  transition:border-color .15s,box-shadow .15s}
+.insel:hover{border-color:var(--accent)}
+.insel.aktiv{border-color:var(--accent);
+  box-shadow:0 2px 12px color-mix(in srgb,var(--accent) 18%,transparent)}
+.insel .iname{font-family:var(--font-disp);font-weight:600;font-size:1rem;color:var(--ink);
+  background:none;border:none;cursor:pointer;padding:6px 0;min-width:2ch;max-width:14ch}
+.insel.aktiv .iname{color:var(--accent-ink)}
+.insel .iname:read-write:focus{cursor:text}
+.insel .iedit{background:none;border:none;color:var(--muted);cursor:pointer;font-size:.9rem;
+  padding:4px 6px;border-radius:7px;line-height:1}
+.insel .iedit:hover{background:var(--chip);color:var(--ink)}
+.profilbar{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+.profilbar .pbtxt{font-family:var(--font-body);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.profile{display:flex;gap:8px;flex-wrap:wrap}
+.profil{display:flex;align-items:center;gap:4px;background:var(--surface2);
+  border:1px solid var(--line);border-radius:999px;padding:3px 6px 3px 14px;cursor:pointer;
+  transition:border-color .15s,box-shadow .15s}
+.profil:hover{border-color:var(--accent)}
+.profil.aktiv{border-color:var(--accent);background:var(--surface);
+  box-shadow:0 2px 12px color-mix(in srgb,var(--accent) 20%,transparent)}
+.profil .pname2{font-family:var(--font-disp);font-weight:600;font-size:.95rem;color:var(--muted);
+  background:none;border:none;cursor:pointer;padding:5px 0;min-width:2ch;max-width:13ch}
+.profil.aktiv .pname2{color:var(--accent-ink)}
+.profil .pname2:read-write:focus{cursor:text}
+.sec{font-family:var(--font-disp);font-weight:600;font-size:1.35rem;margin:26px 0 2px;
+  color:var(--head)}
+.geb-head{font-family:var(--font-disp);font-weight:600;font-size:1.15rem;color:var(--head);
+  margin:22px 0 10px;display:flex;align-items:center;gap:9px;padding-bottom:7px;
+  border-bottom:2px solid var(--line)}
+.geb-head .geb-ic{font-size:1.2em}
+.levelbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;
+  background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 14px}
+.levelbar label{display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}
+.levelbar input{width:68px;font-family:var(--font-num);padding:6px 9px;border:1px solid var(--line);
+  border-radius:8px;background:var(--surface2);color:var(--ink);text-align:right;font-size:.95rem}
+.levelbar .lvlhint{font-size:.82rem;color:var(--muted)}
+/* Produktions-Kachel */
+.pzeile{display:flex;align-items:center;gap:10px;margin-top:6px}
+.pfeld{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%}
+.pfeld .plab{font-size:.85rem;color:var(--muted)}
+.pfeld select,.pfeld input{font-family:var(--font-num);padding:6px 10px;border:1px solid var(--line);
+  border-radius:8px;background:var(--surface2);color:var(--ink);font-size:.95rem;width:120px;text-align:right}
+.pdetail{margin-top:10px;font-size:.84rem;color:var(--muted)}
+.pdetail>summary{cursor:pointer;list-style:none;padding:7px 0;border-top:1px dashed var(--line);
+  font-size:.8rem;font-weight:600;letter-spacing:.03em;color:var(--accent-ink);
+  display:flex;align-items:center;gap:6px;user-select:none}
+.pdetail>summary::-webkit-details-marker{display:none}
+.pdetail>summary::before{content:"▸";transition:transform .15s;font-size:.8em}
+.pdetail[open]>summary::before{transform:rotate(90deg)}
+.pdetail .zeil{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
+.pdetail .zeil b{color:var(--ink);font-weight:600;font-family:var(--font-num);
+  font-variant-numeric:tabular-nums}
+.pdetail .zut{color:var(--fein)}
+.psteigt{font-size:.72rem;color:var(--accent-ink);font-style:italic}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+
+<div class="wrap">
+  <header>
+    <h1><span class="sun">☀</span> Sunshine Rechenhilfe</h1>
+    <p class="lead">Ernte-Erträge nach Feldstufe und Produktionsmengen nach Gebäudelevel — alle Werte aus dem Spiel ausgelesen.</p>
+  </header>
+
+  <div class="profilbar"><span class="pbtxt">👤 Spieler</span><div class="profile" id="profile"></div></div>
+
+  <div class="inseln" id="inseln"></div>
+
+  <div class="levelbar">
+    <label>🧑‍🌾 Spieler-Level
+      <input type="number" id="spielerlvl" min="1" max="99" value="99" aria-label="Spieler-Level">
+    </label>
+    <span class="lvlhint">zeigt nur freigeschaltete Produkte</span>
+  </div>
+
+  <section>
+    <div class="panel">
+      <div class="controls">
+        <label class="ck"><input type="checkbox" id="bonusOn"> Beitragsbonus</label>
+        <span class="bonusbox"><select id="bonus" aria-label="Beitragsbonus Prozent">
+          <option value="0">0 %</option><option value="2">2 %</option><option value="4">4 %</option>
+          <option value="6">6 %</option><option value="8">8 %</option><option value="10">10 %</option>
+          <option value="12">12 %</option><option value="14">14 %</option><option value="16" selected>16 %</option>
+          <option value="18">18 %</option><option value="20">20 %</option><option value="22">22 %</option>
+          <option value="24">24 %</option><option value="26">26 %</option><option value="28">28 %</option>
+        </select></span>
+        <span class="runen">Rune +10 %:
+          <label class="ck"><input type="checkbox" id="runeFeld"> Feld</label>
+          <label class="ck"><input type="checkbox" id="runePlant"> Plantage</label>
+          <label class="ck"><input type="checkbox" id="runeMine"> Mine</label>
+        </span>
+      </div>
+      <div class="controls" style="margin-top:12px">
+        <input type="search" id="suche" placeholder="Produkt oder Gebäude suchen…">
+      </div>
+      <p class="hint">Produkte sind nach <b>Gebäude</b> gruppiert. Tippe eine Kachel an, um deine Eingaben zu machen.</p>
+    </div>
+
+    <div class="sumbar" id="sumbar" hidden>
+      <span class="t">Gesamt</span>
+      <span class="big" id="sumE">0</span>
+      <span class="t">Fein</span><span id="sumF">0</span>
+      <span class="t">Sofort</span><span id="sumS">0</span>
+    </div>
+
+    <div id="alle"></div>
+  </section>
+
+  <footer class="disclaimer">
+    Keine Gewähr für die Richtigkeit.
+    Einige Symbole: <a href="https://github.com/jdecked/twemoji" target="_blank" rel="noopener">Twemoji</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC&nbsp;BY&nbsp;4.0</a>).
+  </footer>
+
+</div>
+
+<script>
+const DATA={"Milch":{"g":"Kuhstall","t":"feld","bib":[2,3,5,6,8],"s":{"1":[15,23,25],"2":[18,28,30],"3":[22,33,36],"4":[26,40,43],"5":[31,48,53],"6":[37,57,62],"7":[45,69,75],"8":[54,82,90],"9":[64,99,107],"10":[77,119,129],"11":[93,142,155],"12":[111,171,186],"13":[134,205,223],"14":[160,246,267],"15":[193,295,321],"16":[231,354,385],"17":[277,425,462],"18":[333,510,555]},"frei":4,"baende":2,"mist":{"1":5,"2":6,"3":7,"4":9,"5":10,"6":12,"7":15,"8":18,"9":21,"10":26,"11":31,"12":37,"13":45,"14":53,"15":64,"16":77,"17":92,"18":111},"mistName":"Kuhmist","mistBib":{"b1max":1,"b2max":2}},"Feder":{"g":"Straußenfarm","t":"feld","bib":[9,18,27,36,45],"s":{"1":[90,135,150],"2":[108,162,180],"3":[130,194,216],"4":[156,233,259],"5":[187,280,311],"6":[224,336,373],"7":[269,403,448],"8":[322,484,537],"9":[387,580,645],"10":[464,697,774],"11":[557,836,929],"12":[669,1003,1115],"13":[802,1204,1337],"14":[963,1444,1605],"15":[1156,1733,1926],"16":[1387,2080,2311]},"frei":9,"baende":1,"mist":{"1":90,"2":108,"3":130,"4":156,"5":187,"6":224,"7":269,"8":322,"9":387,"10":464,"11":557,"12":669,"13":802,"14":963,"15":1156,"16":1387},"mistName":"Hühnermist","mistBib":{"b1max":1,"b2max":2}},"Palmholz":{"g":"Palmengärtnerei","t":"feld","bib":[3,6,9,12,15],"s":{"1":[30,45,50],"2":[36,54,60],"3":[43,65,72],"4":[52,78,86],"5":[62,93,104],"6":[75,112,124],"7":[90,134,149],"8":[107,161,179],"9":[129,193,215],"10":[155,232,258],"11":[186,279,310],"12":[223,334,372],"13":[267,401,446]},"frei":26,"baende":1},"Golderz":{"g":"Mine","t":"feld","bib":[2,4,6,8,10],"s":{"1":[25,33,35],"2":[28,38,40],"3":[32,43,46],"4":[36,50,53],"5":[41,58,62],"6":[47,67,72],"7":[55,79,85],"8":[64,92,100],"9":[74,109,117],"10":[87,129,139],"11":[103,152,165],"12":[121,181,196],"13":[144,215,233],"14":[170,256,277],"15":[203,305,331]},"frei":16,"baende":2},"Bambus":{"g":"Bambusgärtnerei","t":"feld","bib":[9,18,27,36,45],"s":{"1":[90,135,150],"2":[108,162,180],"3":[130,194,216],"4":[156,233,259],"5":[187,280,311],"6":[224,336,373],"7":[269,403,448],"8":[322,484,537],"9":[387,580,645],"10":[464,697,774],"11":[557,836,929],"12":[669,1003,1115],"13":[802,1204,1337],"14":[963,1444,1605]},"frei":17,"baende":1},"Kaschmir":{"g":"Ziegenfarm","t":"feld","bib":[7,14,21,28,35],"s":{"1":[70,105,115],"2":[84,126,138],"3":[101,151,166],"4":[121,181,199],"5":[145,218,238],"6":[174,261,286],"7":[209,314,343],"8":[251,376,412],"9":[301,451,494],"10":[361,542,593],"11":[433,650,712],"12":[520,780,854],"13":[624,936,1025]},"frei":25,"baende":1,"mist":{"1":60,"2":72,"3":86,"4":104,"5":124,"6":149,"7":179,"8":215,"9":258,"10":310,"11":372,"12":446,"13":535},"mistName":"Ziegenmist","mistBib":{"b1max":1,"b2max":2}},"Weizen":{"g":"Feld","t":"feld","bib":[1,2,3,4,5],"s":{"1":[10,15,17],"2":[12,18,20],"3":[14,22,24],"4":[17,26,29],"5":[21,31,35],"6":[25,37,42],"7":[30,45,51],"8":[36,54,61],"9":[43,64,73],"10":[52,77,88],"11":[62,93,105],"12":[74,111,126],"13":[89,134,152],"14":[107,160,182],"15":[128,193,218],"16":[154,231,262],"17":[185,277,314],"18":[222,333,377]},"frei":4,"baende":2},"Gänseblümchen":{"g":"Feld","t":"feld","bib":[1,2,3,4,5],"s":{"1":[10,15,17],"2":[12,18,20],"3":[14,22,24],"4":[17,26,29],"5":[21,31,35],"6":[25,37,42],"7":[30,45,51],"8":[36,54,61],"9":[43,64,73],"10":[52,77,88],"11":[62,93,105],"12":[74,111,126],"13":[89,134,152],"14":[107,160,182],"15":[128,193,218],"16":[154,231,262],"17":[185,277,314],"18":[222,333,377]},"frei":3,"baende":2},"Mais":{"g":"Feld","t":"feld","bib":[2,3,5,6,8],"s":{"1":[15,23,25],"2":[18,28,30],"3":[22,33,36],"4":[26,40,43],"5":[31,48,52],"6":[37,57,62],"7":[45,69,75],"8":[54,82,90],"9":[64,99,107],"10":[77,119,129],"11":[93,142,155],"12":[111,171,186],"13":[134,205,223],"14":[160,246,267],"15":[193,295,321],"16":[231,354,385],"17":[277,425,462],"18":[333,510,555]},"frei":6,"baende":1},"Karotten":{"g":"Feld","t":"feld","bib":[9,18,27,36,45],"s":{"1":[90,135,150],"2":[108,162,180],"3":[130,194,216],"4":[156,233,259],"5":[187,280,311],"6":[224,336,373],"7":[269,403,448],"8":[322,484,537],"9":[387,580,645],"10":[464,697,774],"11":[557,836,929],"12":[669,1003,1115],"13":[802,1204,1337],"14":[963,1444,1605],"15":[1156,1733,1926],"16":[1387,2080,2311],"17":[1664,2496,2773],"18":[1997,2995,3328]},"frei":22,"baende":1},"Kupfererz":{"g":"Mine","t":"feld","bib":[2,4,6,8,10],"baende":2,"frei":16,"s":{"1":[28,41,45],"2":[33,49,53],"3":[39,58,63],"4":[46,69,76],"5":[55,82,90],"6":[65,98,108],"7":[78,116,128],"8":[93,139,153],"9":[110,166,184],"10":[132,199,220],"11":[158,238,263],"12":[189,285,315],"13":[226,342,377],"14":[270,410,452],"15":[324,491,542]}},"Eisenerz":{"g":"Mine","t":"feld","bib":[9,18,27,36,45],"baende":2,"frei":16,"s":{"1":[90,135,150],"2":[108,162,180],"3":[130,194,216],"4":[156,233,259],"5":[187,280,311],"6":[224,336,373],"7":[269,403,448],"8":[322,484,537],"9":[387,580,645],"10":[464,697,774],"11":[557,836,929],"12":[669,1003,1115],"13":[802,1204,1337],"14":[963,1444,1605],"15":[1156,1733,1926]}},"Kaffeebohnen":{"g":"Plantage","t":"feld","bib":[1,2,3,4,5],"frei":1,"s":{"1":[15,20,22],"2":[17,23,25],"3":[19,27,29],"4":[22,31,34],"5":[26,36,40],"6":[30,42,47],"7":[35,50,56],"8":[41,59,66],"9":[48,69,78],"10":[57,82,93],"11":[67,98,110],"12":[79,116,131],"13":[94,139,157],"14":[112,165,187],"15":[133,198,223],"16":[159,236,267]}},"Baumwolle":{"g":"Plantage","t":"feld","bib":[2,4,6,8,10],"frei":1,"s":{"1":[20,30,33],"2":[24,36,40],"3":[29,43,48],"4":[35,52,57],"5":[41,62,68],"6":[50,75,82],"7":[60,90,99],"8":[72,107,118],"9":[86,129,142],"10":[103,155,170],"11":[124,186,204],"12":[149,223,245],"13":[178,267,294],"14":[214,321,353],"15":[257,385,424],"16":[308,462,508]}},"Seidenkokon":{"g":"Plantage","t":"feld","bib":[3,6,9,12,15],"frei":1,"s":{"1":[30,null,null],"2":[36,null,null],"3":[43,null,null],"4":[52,null,null],"5":[62,null,null],"6":[75,null,null],"7":[90,null,null],"8":[107,null,null],"9":[129,null,null],"10":[155,null,null],"11":[186,null,null],"12":[223,null,null],"13":[267,null,null],"14":[321,null,null],"15":[385,null,null],"16":[462,null,null]}},"Reis":{"g":"Reisfeld","t":"feld","bib":[6,12,18,24,30],"frei":1,"s":{"1":[60,90,100],"2":[72,108,120],"3":[86,130,144],"4":[104,156,173],"5":[124,187,207],"6":[149,224,249],"7":[179,269,299],"8":[215,322,358],"9":[258,387,430],"10":[310,464,516],"11":[372,557,619]}},"Kiefernholz":{"g":"Kieferngärtnerei","t":"feld","bib":[3,6,9,12,15],"frei":1,"s":{"1":[30,45,50],"2":[36,54,60],"3":[43,65,72],"4":[52,78,86],"5":[62,93,104],"6":[75,112,124],"7":[90,134,149],"8":[107,161,179],"9":[129,193,215],"10":[155,232,258],"11":[186,279,310],"12":[223,334,372],"13":[267,401,446],"14":[321,481,535],"15":[385,578,642],"16":[462,693,770]}}};
+const F_FAK=1.47, S_FAK=1.60;
+// Produkt-Symbole: echte Grafiken aus dem Fan-Wiki, mitpubliziert unter icons/
+const ICON={"Milch": "milch.svg", "Weizen": "weizen.svg", "Gänseblümchen": "gaensebluemchen.svg", "Mais": "mais.svg", "Karotten": "karotten.svg", "Mehl": "mehl.svg", "gemahl. Kaffee": "gemahlkaffee.svg", "Brot": "brot.svg", "Kiefernholz": "kiefernholz.svg", "Frühstück": "fruehstueck.svg", "Kaffeebohnen": "kaffeebohnen.svg", "Baumwolle": "baumwolle.svg", "Seidenkokon": "seidenkokon.svg", "Feder": "feder.svg", "Tasse Kaffee": "tassekaffee.svg", "Baumwollgarn": "baumwollgarn.svg", "Seidenfaden": "seidenfaden.svg", "Baumwollrolle": "baumwollrolle.svg", "Palmholz": "palmholz.svg", "Kupferbleche": "kupferbleche.svg", "Eis-Kaffee": "eiskaffee.svg", "Poncho": "poncho.svg", "Marimba": "marimba.svg", "Golderz": "golderz.svg", "Bambus": "bambus.svg", "Goldbarren": "goldbarren.svg", "Kaschmir": "kaschmir.svg", "Milchreis": "milchreis.svg", "Bestickte Tunika": "besticktetunika.svg", "Zier-Katana": "zierkatana.svg", "Dünger": "duenger.svg", "Kuhfutter": "kuhfutter.svg", "Straußenfutter": "straussenfutter.svg", "Tierhausfutter": "tierhausfutter.svg", "Ziegenfutter": "ziegenfutter.svg"};
+// Icons der Produktions-Produkte (ergänzend)
+Object.assign(ICON,{
+  "Dünger":"duenger.svg","Bambusreis":"bambusreis.svg","Jacke":"jacke.svg",
+  "Steppdecke":"steppdecke.svg","Vorhang":"vorhang.svg","Hängematte":"haengematte.svg","Gong":"gong.svg",
+  "Kupfererz":"kupfererz.svg","Eisenerz":"eisenerz.svg","Kupferbarren":"kupferbarren.svg","Eisenbarren":"eisenbarren.svg","Eisenbleche":"eisenbleche.svg","Reis":"reis.svg","Seidenballen":"seidenballen.svg","Goldbleche":"goldbleche.svg","Standuhr":"standuhr.svg"
+});
+const ico=p=>ICON[p]?`<img class="ic" src="icons/${ICON[p]}" alt="" loading="lazy">`:`<span class="ic ph">${p.charAt(0)}</span>`;
+const $=s=>document.querySelector(s);
+const fmt=n=>Math.round(n).toLocaleString("de-DE");
+const MODI={E:"Normal",F:"Fein",S:"Sofort"};
+// state: produkt -> { felder:[{l:level,m:'E'|'F'|'S'}], menge:anzahl(fest), festmod:'E'|'F'|'S' }
+let state={};
+// grid entfernt (nach Gebäude gruppiert)
+
+// Rune-Zuordnung: nur diese Rohstoff-Produkte bekommen +10% je aktiver Rune
+const RUNE={
+  Feld:["Weizen","Gänseblümchen","Mais","Karotten"],
+  Plant:["Kaffeebohnen","Baumwolle","Seidenkokon"],
+  Mine:["Golderz","Eisenerz","Kupfererz"]
+};
+function runeFaktor(p){
+  let f=1;
+  if($("#runeFeld")?.checked && RUNE.Feld.includes(p)) f*=1.10;
+  if($("#runePlant")?.checked && RUNE.Plant.includes(p)) f*=1.10;
+  if($("#runeMine")?.checked && RUNE.Mine.includes(p)) f*=1.10;
+  return f;
+}
+// Gesamt-Multiplikator für ein Produkt: Beitragsbonus (global) × Rune (produktabhängig)
+function mult(p){
+  let m=1;
+  if($("#bonusOn").checked) m*=1+(Math.max(0,+$("#bonus").value||0))/100;
+  if(p) m*=runeFaktor(p);
+  return m;
+}
+
+function maxStufe(p){ return Math.max(...Object.keys(DATA[p].s).map(Number)); }
+
+// Bibliothek-Bonus eines Produkts bei eingestellter Bibliotheksstufe (0 = keiner)
+function bibBonus(p){
+  const reihe=DATA[p].bib||[];
+  if(!reihe.length) return 0;
+  const einzel=st=> (st>=1 && st<=reihe.length) ? reihe[st-1] : 0;
+  const b1=einzel(state[p]?.bib||0);
+  const b2=(DATA[p].baende>=2) ? einzel(state[p]?.bib2||0) : 0;
+  return b1+b2;   // beide Bände addieren sich
+}
+
+// [E,F,S,estimated] eines Feld-Produkts bei Level (roh) + Bibliothek-Bonus
+function stufeEFS(p,level){
+  const row=DATA[p].s[String(level)];
+  if(!row) return [0,0,0,false];
+  const b=bibBonus(p);
+  const E=row[0], est=row[1]==null;
+  const ff=DATA[p].ff||F_FAK, sf=DATA[p].sf||S_FAK;
+  const F=est?Math.round(E*ff):row[1], S=est?Math.round(E*sf):row[2];
+  return [E+b, F+b, S+b, est];   // Bibliothek addiert bei allen Modi gleich
+}
+// ein Wert je nach Modus
+function wertVon(efs,modus){ return modus==="F"?efs[1]:modus==="S"?efs[2]:efs[0]; }
+
+// reale Produktion eines Produkts (roh, ohne Beitragsbonus; Bibliothek ist drin).
+function produktReal(p){
+  const d=DATA[p];
+  let E=0,F=0,S=0,est=false,total=0;
+  if(d.t==="fest"){
+    const n=state[p]?.menge||0, mod=d.nn?"E":(state[p]?.festmod||"E"), b=bibBonus(p);
+    total=n;
+    if(mod==="F"){ F=(Math.round(d.w*F_FAK)+b)*n; est=true; }
+    else if(mod==="S"){ S=(Math.round(d.w*S_FAK)+b)*n; est=true; }
+    else E=(d.w+b)*n;
+    return {E,F,S,est,total};
+  }
+  const felder=state[p]?.felder||[];
+  const nn=d.nn;
+  let mist=0;
+  for(const f of felder){
+    const anz=Math.max(1,f.n||1);
+    total+=anz;
+    const efs=stufeEFS(p,f.l);
+    const mm=nn?"E":f.m;
+    if(mm==="F"){ F+=efs[1]*anz; if(efs[3])est=true; }
+    else if(mm==="S"){ S+=efs[2]*anz; if(efs[3])est=true; }
+    else E+=efs[0]*anz;
+    // Nebenprodukt Mist (am Level) + eigener 2-Band-Bibliothek-Bonus (je +1/Stufe)
+    if(d.mist){
+      const mb=mistBibGlobal;  // gemeinsame Mist-Bibliothek für alle Mist-Sorten (0..3)
+      mist += ((d.mist[String(f.l)]||0)+mb)*anz;
+    }
+  }
+  return {E,F,S,est,total,mist,mistName:d.mistName};
+}
+
+let offen=null;
+
+// Bibliothek-Regler (Stufe 0-5) für ein Produkt; leer wenn keine Bibliothek-Reihe
+// Mist-Bibliothek-Regler (2 Bänder, je +1/Stufe) – nur wenn Produkt Mist hat
+function mistBibRegler(p){
+  const d=DATA[p];
+  if(!d.mist||!d.mistBib) return "";
+  const maxB=(d.mistBib.b1max||0)+(d.mistBib.b2max||0);
+  const cur=mistBibGlobal;
+  const opts=[];
+  for(let s=0;s<=maxB;s++){
+    const lab = s===0 ? "0 (aus)" : `Stufe ${s}`;
+    opts.push(`<option value="${s}"${s===cur?" selected":""}>${lab}</option>`);
+  }
+  return `<div class="feldzeile" style="margin-bottom:8px"><div class="fz-top">`+
+    `<span class="plab" style="color:var(--muted);font-size:.85rem">📚 Mist-Bibliothek</span>`+
+    `<select data-mistbib2="1" style="margin-left:auto" aria-label="Mist-Bibliothek (gemeinsam)">${opts.join("")}</select></div></div>`;
+}
+
+function bibRegler(p){
+  const reihe=DATA[p].bib||[];
+  if(!reihe.length) return "";
+  const baende=DATA[p].baende||1;
+  const bauSelect=(stAktuell,attr,label)=>{
+    const opts=[0,...reihe.map((_,i)=>i+1)].map(s=>{
+      const lab = s===0 ? "0 (aus)" : `Stufe ${s}`;
+      return `<option value="${s}"${s===stAktuell?" selected":""}>${lab}</option>`;
+    }).join("");
+    return `<div class="fz-top"><span class="plab" style="color:var(--muted);font-size:.85rem">📚 ${label}</span>`+
+      `<select ${attr} style="margin-left:auto" aria-label="${p} ${label}">${opts}</select></div>`;
+  };
+  let html=`<div class="feldzeile" style="margin-bottom:8px">`;
+  if(baende>=2){
+    html+=bauSelect(state[p]?.bib||0, `data-bib="${p}"`, "Bibliothek I");
+    html+=`<div style="height:6px"></div>`;
+    html+=bauSelect(state[p]?.bib2||0, `data-bib2="${p}"`, "Bibliothek II");
+  }else{
+    html+=bauSelect(state[p]?.bib||0, `data-bib="${p}"`, "Bibliothek");
+  }
+  return html+`</div>`;
+}
+
+// Baut die HTML einer Ernte-Kachel (Feld- oder Fest-Produkt), gibt {html, E,F,S} zurück
+function ernteKachelHTML(p){
+    const d=DATA[p];
+    const m=mult(p);
+    const {E,F,S,est,total,mist,mistName}=produktReal(p);
+    const isOpen=offen===p;
+
+    let detail="";
+    if(isOpen){
+      if(d.t==="feld"){
+        const felder=state[p]?.felder||[];
+        const stufen=Object.keys(d.s).map(Number).sort((a,b)=>a-b);
+        const defLvl=Math.min(8,maxStufe(p));
+        const nn=d.nn;
+        const zeilen=felder.map((f,idx)=>{
+          const fm=nn?"E":f.m;
+          const anz=Math.max(1,f.n||1);
+          const opts=stufen.map(s=>`<option value="${s}"${s===f.l?" selected":""}>Lvl ${s}</option>`).join("");
+          const efs=stufeEFS(p,f.l);
+          const w=wertVon(efs,fm);
+          const estF=(fm!=="E"&&efs[3]);
+          const mbtn=mode=>`<button type="button" data-mbtn="${p}" data-idx="${idx}" data-mode="${mode}" `+
+            `aria-pressed="${fm===mode}">${mode==="E"?"Normal":mode==="F"?"Fein":"Sofort"}</button>`;
+          return `<div class="feldzeile">`+
+            `<div class="gebzeile">`+
+              `<select data-p="${p}" data-idx="${idx}" aria-label="${p} Zeile ${idx+1} Level">${opts}</select>`+
+              `<label class="gmenge">× <input type="number" inputmode="numeric" min="1" step="1" value="${anz}" `+
+                `data-fn="${p}" data-idx="${idx}" aria-label="${p} Anzahl Felder Level ${f.l}"></label>`+
+              `<span class="fprod m${fm}">${fmt(w*anz*m)}${estF?'<span class="est">≈</span>':''}</span>`+
+              `<button class="delf" data-del="${p}" data-idx="${idx}" aria-label="Zeile ${idx+1} entfernen" title="entfernen">✕</button>`+
+            `</div>`+
+            (nn?``:`<span class="modus">${mbtn("E")}${mbtn("F")}${mbtn("S")}</span>`)+
+          `</div>`;
+        }).join("");
+        detail=`<div class="detail">`+
+          bibRegler(p)+
+          mistBibRegler(p)+
+          (total?`<div class="zeile"><button class="clearbtn" data-clear="${p}">alle leeren</button></div>`:``)+
+          (zeilen?`<div class="felder">${zeilen}</div>`:``)+
+          `<button class="addf" data-add="${p}" data-def="${defLvl}">+ anderes Level</button></div>`;
+      }else{
+        const nn=d.nn;
+        const v=state[p]?.menge||"", fm=nn?"E":(state[p]?.festmod||"E");
+        const mbtn=mode=>`<button type="button" data-festmod="${p}" data-mode="${mode}" `+
+          `aria-pressed="${fm===mode}">${mode==="E"?"Normal":mode==="F"?"Fein":"Sofort"}</button>`;
+        detail=`<div class="detail">`+
+          bibRegler(p)+
+          `<div class="zeile"><span class="dh">Anzahl Stück</span>`+
+          `<span class="badge fest">fester Wert ${d.w}</span></div>`+
+          `<div class="feldzeile">`+
+          `<div class="fz-top"><label class="menge" style="margin:0">× <input type="number" inputmode="numeric" min="0" step="1" value="${v}" `+
+          `data-p="${p}" data-fest="1" placeholder="0" aria-label="${p}: Anzahl"> Stück</label></div>`+
+          (nn?``:`<span class="modus">${mbtn("E")}${mbtn("F")}${mbtn("S")}</span>`)+`</div></div>`;
+      }
+    }
+
+    // Kachel zeigt die drei realen Töpfe – nur die, die >0 sind
+    const spalten=[];
+    if(E>0) spalten.push(`<div class="v E"><span class="lab">Produktion</span><span class="n">${fmt(E*m)}</span></div>`);
+    if(F>0) spalten.push(`<div class="v F"><span class="lab">Produktion</span><span class="n">${fmt(F*m)}</span></div>`);
+    if(S>0) spalten.push(`<div class="v S"><span class="lab">Produktion</span><span class="n">${fmt(S*m)}</span></div>`);
+    if(!spalten.length) spalten.push(`<div class="v E"><span class="lab">Produktion</span><span class="n">0</span></div>`);
+    if(mist>0) spalten.push(`<div class="v MIST"><span class="lab"><img class="labpik" src="icons/mist.svg" alt="Mist"></span><span class="n">${fmt(mist)}</span></div>`);
+
+    const html=
+      `<h3>${ico(p)}<span class="pname">${p}</span>`+
+        `</h3>`+
+      `<div class="vals">${spalten.join("")}</div>`+
+      (est&&!d.nn?`<span class="est">Fein/Sofort genähert</span>`:``)+
+      (isOpen?``:`<span class="tap">${total?"Tippen zum Bearbeiten":"Tippen zum Eingeben"}</span>`)+
+      detail;
+    return {html, E:E*m, F:F*m, S:S*m, mist:mist||0, isOpen};
+}
+
+function bindInputs(){
+  const box=$("#alle");
+  // Kachel öffnen/schließen
+  box.querySelectorAll("[data-card]").forEach(card=>{
+    card.addEventListener("click",e=>{
+      if(e.target.closest(".detail")||e.target.closest(".pdetail")||e.target.closest(".pzeile")) return;
+      const p=card.dataset.card;
+      offen = offen===p ? null : p;
+      render();
+    });
+  });
+  // --- ERNTE-Handler ---
+  box.querySelectorAll("[data-add]").forEach(b=>{
+    b.addEventListener("click",e=>{ e.stopPropagation();
+      const p=b.dataset.add, def=+b.dataset.def;
+      state[p]=state[p]||{}; state[p].felder=state[p].felder||[];
+      state[p].felder.push({l:def,m:"E",n:1}); render(); });
+  });
+  box.querySelectorAll("select[data-p][data-idx]").forEach(sel=>{
+    sel.addEventListener("change",e=>{
+      const p=e.target.dataset.p, idx=+e.target.dataset.idx;
+      state[p].felder[idx].l=+e.target.value; render(); });
+  });
+  box.querySelectorAll("input[data-fn]").forEach(inp=>{
+    inp.addEventListener("input",e=>{
+      const p=e.target.dataset.fn, idx=+e.target.dataset.idx;
+      state[p].felder[idx].n=Math.max(1,+e.target.value||1); render(); });
+  });
+  box.querySelectorAll("[data-mbtn]").forEach(b=>{
+    b.addEventListener("click",e=>{ e.stopPropagation();
+      const p=b.dataset.mbtn, idx=+b.dataset.idx;
+      state[p].felder[idx].m=b.dataset.mode; render(); });
+  });
+  box.querySelectorAll("[data-festmod]").forEach(b=>{
+    b.addEventListener("click",e=>{ e.stopPropagation();
+      const p=b.dataset.festmod;
+      state[p]=state[p]||{}; state[p].festmod=b.dataset.mode; render(); });
+  });
+  box.querySelectorAll("[data-del]").forEach(b=>{
+    b.addEventListener("click",e=>{ e.stopPropagation();
+      const p=b.dataset.del, idx=+b.dataset.idx;
+      state[p].felder.splice(idx,1); render(); });
+  });
+  box.querySelectorAll("input[data-fest]").forEach(el=>{
+    el.addEventListener("input",e=>{
+      const p=e.target.dataset.p;
+      state[p]=state[p]||{}; state[p].menge=Math.max(0,+e.target.value||0); render(); });
+  });
+  box.querySelectorAll("[data-clear]").forEach(b=>{
+    b.addEventListener("click",e=>{ e.stopPropagation();
+      const p=b.dataset.clear;
+      if(state[p]){ state[p].felder=[]; state[p].menge=0; state[p].festmod="E"; } render(); });
+  });
+  box.querySelectorAll("select[data-bib]").forEach(sel=>{
+    sel.addEventListener("change",e=>{
+      const p=e.target.dataset.bib;
+      state[p]=state[p]||{}; state[p].bib=+e.target.value; render(); });
+  });
+  box.querySelectorAll("select[data-bib2]").forEach(sel=>{
+    sel.addEventListener("change",e=>{
+      const p=e.target.dataset.bib2;
+      state[p]=state[p]||{}; state[p].bib2=+e.target.value; render(); });
+  });
+  box.querySelectorAll("select[data-mistbib2]").forEach(sel=>{
+    sel.addEventListener("change",e=>{
+      mistBibGlobal=+e.target.value; if(inseln) speichereInseln(); render(); });
+  });
+  box.querySelectorAll("select[data-mistbib]").forEach(sel=>{
+    sel.addEventListener("change",e=>{
+      const p=e.target.dataset.mistbib;
+      state[p]=state[p]||{}; state[p].mistBib=+e.target.value; render(); });
+  });
+  // --- PRODUKTIONS-Handler ---
+  box.querySelectorAll("select[data-pp]").forEach(sel=>{
+    sel.addEventListener("change",e=>{
+      const p=e.target.dataset.pp;
+      pstate[p]=pstate[p]||{anzahl:1}; pstate[p].lvl=+e.target.value; render(); });
+  });
+  box.querySelectorAll("input[data-pn]").forEach(inp=>{
+    inp.addEventListener("input",e=>{
+      const p=e.target.dataset.pn;
+      pstate[p]=pstate[p]||{lvl:1}; pstate[p].anzahl=Math.max(1,+e.target.value||1); render(); });
+  });
+  box.querySelectorAll("select[data-pbib]").forEach(sel=>{
+    sel.addEventListener("change",e=>{
+      const p=e.target.dataset.pbib;
+      pstate[p]=pstate[p]||{lvl:1,anzahl:1}; pstate[p].bib=+e.target.value; render(); });
+  });
+  box.querySelectorAll("select[data-pbib2]").forEach(sel=>{
+    sel.addEventListener("change",e=>{
+      const p=e.target.dataset.pbib2;
+      pstate[p]=pstate[p]||{lvl:1,anzahl:1}; pstate[p].bib2=+e.target.value; render(); });
+  });
+  // --- MEHRFACH-GEBÄUDE-Handler (Produkt hat Liste st.geb=[{lvl,anzahl},…]) ---
+  const geb=p=>{ pstate[p]=pstate[p]||{}; if(!Array.isArray(pstate[p].geb)) pstate[p].geb=[{lvl:1,anzahl:1}]; return pstate[p].geb; };
+  box.querySelectorAll("select[data-pgeb]").forEach(sel=>{
+    sel.addEventListener("change",e=>{
+      const p=e.target.dataset.pgeb, i=+e.target.dataset.idx;
+      geb(p)[i].lvl=+e.target.value; render(); });
+  });
+  box.querySelectorAll("input[data-pgebn]").forEach(inp=>{
+    inp.addEventListener("input",e=>{
+      const p=e.target.dataset.pgebn, i=+e.target.dataset.idx;
+      geb(p)[i].anzahl=Math.max(1,+e.target.value||1); render(); });
+  });
+  box.querySelectorAll("button[data-pgebdel]").forEach(b=>{
+    b.addEventListener("click",e=>{
+      e.stopPropagation();
+      const p=b.dataset.pgebdel, i=+b.dataset.idx, arr=geb(p);
+      arr.splice(i,1); if(!arr.length) arr.push({lvl:1,anzahl:1}); render(); });
+  });
+  box.querySelectorAll("button[data-pgebadd]").forEach(b=>{
+    b.addEventListener("click",e=>{
+      e.stopPropagation();
+      const p=b.dataset.pgebadd, def=+b.dataset.def||1;
+      geb(p).push({lvl:def,anzahl:1}); render(); });
+  });
+  // --- EINZELGEBÄUDE-Handler (eine Kachel je Gebäude, Produkt-Dropdown) ---
+  const gst=g=>{ const k="GEB::"+g; pstate[k]=pstate[k]||{produkt:"",lvl:5,anzahl:1,bib:0}; return pstate[k]; };
+  box.querySelectorAll("select[data-gprod]").forEach(sel=>{
+    sel.addEventListener("change",e=>{ gst(e.target.dataset.gprod).produkt=e.target.value; render(); });
+  });
+  box.querySelectorAll("select[data-glvl]").forEach(sel=>{
+    sel.addEventListener("change",e=>{ gst(e.target.dataset.glvl).lvl=+e.target.value; render(); });
+  });
+  box.querySelectorAll("input[data-gn]").forEach(inp=>{
+    inp.addEventListener("input",e=>{ gst(e.target.dataset.gn).anzahl=Math.max(1,+e.target.value||1); render(); });
+  });
+  box.querySelectorAll("select[data-gbib]").forEach(sel=>{
+    sel.addEventListener("change",e=>{ gst(e.target.dataset.gbib).bib=+e.target.value; render(); });
+  });
+}
+
+["bonusOn","bonus","runeFeld","runePlant","runeMine","suche"].forEach(id=>
+  $("#"+id).addEventListener("input",render));
+
+/* ===== PRODUKTIONS-DATEN ===== */
+const PROD={"Mehl":{"g":"Windmuehle","zut":["Weizen"],"lv":{"1":[15,"00:06:00",[5],-11,3],"2":[15,"00:05:42",[5],-11,3],"3":[15,"00:05:25",[5],-11,3],"4":[15,"00:05:09",[4],-11,3],"5":[15,"00:04:53",[4],-11,3],"6":[15,"00:04:39",[4],-11,3],"7":[15,"00:04:25",[4],-11,3],"8":[15,"00:04:11",[3],-11,3],"9":[15,"00:03:59",[3],-11,3],"10":[15,"00:03:47",[3],-11,3],"11":[15,"00:03:36",[3],-11,3],"12":[15,"00:03:25",[3],-11,3],"13":[15,"00:03:15",[3],-11,3],"14":[15,"00:03:05",[3],-11,3],"15":[15,"00:02:56",[2],-11,3],"16":[15,"00:02:47",[2],-11,3],"17":[15,"00:02:38",[2],-11,3]},"frei":2,"bib":[2,3,5,6,8],"nn":1},"gemahl. Kaffee":{"g":"Windmuehle","zut":["Kaffeebohnen"],"lv":{"1":[30,"01:00:00",[15],-107,16],"2":[30,"00:57:00",[14],-107,16],"3":[30,"00:54:09",[14],-107,16],"4":[30,"00:51:27",[13],-107,16],"5":[30,"00:48:52",[12],-107,16],"6":[30,"00:46:26",[12],-107,16],"7":[30,"00:44:06",[11],-107,16],"8":[30,"00:41:54",[10],-107,16],"9":[30,"00:39:48",[10],-107,16],"10":[30,"00:37:49",[9],-107,16],"11":[30,"00:35:55",[9],-107,16],"12":[30,"00:34:08",[9],-107,16],"13":[30,"00:32:25",[8],-107,16],"14":[30,"00:30:48",[8],-107,16],"15":[30,"00:29:16",[7],-107,16],"16":[30,"00:27:48",[7],-107,16],"17":[30,"00:26:24",[7],-107,16]},"frei":10,"bib":[3,6,9,12,15],"nn":1},"Kuhfutter":{"g":"Futtermuehle","zut":["Gaensebluemchen"],"lv":{"1":[2,"00:03:00",[5],-5,2],"2":[2,"00:02:51",[5],-5,2],"3":[2,"00:02:42",[5],-5,2],"4":[2,"00:02:34",[4],-5,2],"5":[2,"00:02:27",[4],-5,2],"6":[2,"00:02:19",[4],-5,2],"7":[2,"00:02:12",[4],-5,2],"8":[2,"00:02:06",[3],-5,2],"9":[2,"00:01:59",[3],-5,2],"10":[2,"00:01:53",[3],-5,2],"11":[2,"00:01:48",[3],-5,2],"12":[2,"00:01:42",[3],-5,2],"13":[2,"00:01:37",[3],-5,2],"14":[2,"00:01:32",[3],-5,2],"15":[2,"00:01:28",[2],-5,2],"16":[2,"00:01:23",[2],-5,2],"17":[2,"00:01:19",[2],-5,2]},"frei":3,"bib":[1],"nn":1},"Straußenfutter":{"g":"Futtermuehle","zut":["Mais"],"lv":{"1":[2,"00:45:00",[8],-81,13],"2":[2,"00:42:45",[8],-81,13],"3":[2,"00:40:37",[7],-81,13],"4":[2,"00:38:35",[7],-81,13],"5":[2,"00:36:39",[7],-81,13],"6":[2,"00:34:49",[6],-81,13],"7":[2,"00:33:05",[6],-81,13],"8":[2,"00:31:26",[6],-81,13],"9":[2,"00:29:51",[5],-81,13],"10":[2,"00:28:22",[5],-81,13],"11":[2,"00:26:57",[5],-81,13],"12":[2,"00:25:36",[5],-81,13],"13":[2,"00:24:19",[4],-81,13],"14":[2,"00:23:06",[4],-81,13],"15":[2,"00:21:57",[4],-81,13],"16":[2,"00:20:51",[4],-81,13],"17":[2,"00:19:48",[4],-81,13]},"frei":9,"bib":[1],"nn":1},"Tierhausfutter":{"g":"Futtermuehle","zut":["Weizen","Mais"],"lv":{"1":[36,"01:00:00",[15,15],-107,30],"2":[36,"00:57:00",[14,14],-107,30],"3":[36,"00:54:09",[14,14],-107,30],"4":[36,"00:51:27",[13,13],-107,30],"5":[36,"00:48:52",[12,12],-107,30],"6":[36,"00:46:26",[12,12],-107,30],"7":[36,"00:44:06",[11,11],-107,30],"8":[36,"00:41:54",[10,10],-107,30],"9":[36,"00:39:48",[10,10],-107,30],"10":[36,"00:37:49",[9,9],-107,30],"11":[36,"00:35:55",[9,9],-107,30],"12":[36,"00:34:08",[9,9],-107,30],"13":[36,"00:32:25",[8,8],-107,30],"14":[36,"00:30:48",[8,8],-107,30],"15":[36,"00:29:16",[7,7],-107,30],"16":[36,"00:27:48",[7,7],-107,30],"17":[36,"00:26:24",[7,7],-107,30]},"frei":3,"bib":[2,4,6,8,10],"nn":1},"Ziegenfutter":{"g":"Futtermuehle","zut":["Karotten"],"lv":{"1":[2,"02:00:00",[75],-430,28],"2":[2,"01:54:00",[71],-430,28],"3":[2,"01:48:18",[68],-430,28],"4":[2,"01:42:53",[64],-430,28],"5":[2,"01:37:44",[61],-430,28],"6":[2,"01:32:51",[58],-430,28],"7":[2,"01:28:13",[55],-430,28],"8":[2,"01:23:48",[52],-430,28],"9":[2,"01:19:37",[50],-430,28],"10":[2,"01:15:38",[47],-430,28],"11":[2,"01:11:51",[45],-430,28],"12":[2,"01:08:15",[43],-430,28],"13":[2,"01:04:51",[41],-430,28],"14":[2,"01:01:36",[39],-430,28],"15":[2,"00:58:31",[37],-430,28],"16":[2,"00:55:36",[35],-430,28],"17":[2,"00:52:49",[33],-430,28]},"frei":25,"bib":[1],"nn":1},"Dünger":{"g":"Silo","zut":["Düngemittel-Rohstoff"],"lv":{"1":[30,"01:00:00",[100],107,16],"2":[30,"00:57:00",[95],107,16],"3":[30,"00:54:09",[90],107,16],"4":[30,"00:51:27",[86],107,16],"5":[30,"00:48:52",[81],107,16],"6":[30,"00:46:26",[77],107,16],"7":[30,"00:44:06",[74],107,16],"8":[30,"00:41:54",[70],107,16],"9":[30,"00:39:48",[66],107,16],"10":[30,"00:37:49",[63],107,16],"11":[30,"00:35:55",[60],107,16],"12":[30,"00:34:08",[57],107,16],"13":[30,"00:32:25",[54],107,16],"14":[30,"00:30:48",[51],107,16],"15":[30,"00:29:16",[49],107,16]},"frei":6,"bib":[3,6],"baende":2,"nn":1},"Baumwollgarn":{"g":"Spinnerei","zut":["Baumwolle"],"lv":{"1":[23,"00:30:00",[10],28,9],"2":[23,"00:28:30",[10],28,9],"3":[23,"00:27:05",[9],28,9],"4":[23,"00:25:43",[9],28,9],"5":[23,"00:24:26",[8],28,9],"6":[23,"00:23:13",[8],28,9],"7":[23,"00:22:03",[7],28,9],"8":[23,"00:20:57",[7],28,9],"9":[23,"00:19:54",[7],28,9],"10":[23,"00:18:54",[6],28,9],"11":[23,"00:17:58",[6],28,9],"12":[23,"00:17:04",[6],28,9],"13":[23,"00:16:13",[5],28,9],"14":[23,"00:15:24",[5],28,9],"15":[23,"00:14:38",[5],28,9]},"frei":15,"bib":[2,3,5,6,8]},"Goldbarren":{"g":"Giesserei","zut":["Golderz"],"lv":{"1":[20,"01:00:00",[13],76,16],"2":[20,"00:57:00",[12],76,16],"3":[20,"00:54:09",[12],76,16],"4":[20,"00:51:27",[11],76,16],"5":[20,"00:48:52",[11],76,16],"6":[20,"00:46:26",[10],76,16],"7":[20,"00:44:06",[10],76,16],"8":[20,"00:41:54",[9],76,16],"9":[20,"00:39:48",[9],76,16],"10":[20,"00:37:49",[8],76,16],"11":[20,"00:35:55",[8],76,16],"12":[20,"00:34:08",[7],76,16],"13":[20,"00:32:25",[7],76,16]},"frei":27,"bib":[2,4,6,8,10],"nn":1},"Bambusreis":{"g":"Imbiss-Stand","zut":["Bambus","Reis"],"lv":{"1":[15,"00:25:00",[70,100],47,8],"2":[18,"00:25:00",[70,100],47,11],"3":[22,"00:25:00",[70,100],47,14],"4":[26,"00:25:00",[70,100],47,19],"5":[31,"00:25:00",[70,100],47,25],"6":[37,"00:25:00",[70,100],47,32],"7":[45,"00:25:00",[70,100],47,42],"8":[54,"00:25:00",[70,100],47,54],"9":[64,"00:25:00",[70,100],47,69],"10":[77,"00:25:00",[70,100],47,88],"11":[93,"00:25:00",[70,100],47,111]},"frei":39,"bib":[2,3,4,6,8],"nn":1},"Jacke":{"g":"Massschneider","zut":["Feder","Seidenstoff"],"lv":{"1":[14,"01:30:00",[200,15],483,22],"2":[17,"01:30:00",[200,15],483,28],"3":[21,"01:30:00",[200,15],483,35],"4":[25,"01:30:00",[200,15],483,43],"5":[30,"01:30:00",[200,15],483,54],"6":[36,"01:30:00",[200,15],483,67],"7":[44,"01:30:00",[200,15],483,84],"8":[53,"01:30:00",[200,15],483,104],"9":[63,"01:30:00",[200,15],483,129],"10":[76,"01:30:00",[200,15],483,160]},"frei":42,"bib":[2,4,6,8,10],"nn":1},"Steppdecke":{"g":"Massschneider","zut":["Kaschmir","Seidenstoff"],"lv":{"1":[25,"08:00:00",[120,35],2578,87],"2":[30,"08:00:00",[120,35],2578,106],"3":[36,"08:00:00",[120,35],2578,128],"4":[43,"08:00:00",[120,35],2578,156],"5":[52,"08:00:00",[120,35],2578,189],"6":[62,"08:00:00",[120,35],2578,229],"7":[75,"08:00:00",[120,35],2578,278],"8":[90,"08:00:00",[120,35],2578,337],"9":[107,"08:00:00",[120,35],2578,408],"10":[129,"08:00:00",[120,35],2578,495]},"frei":48,"bib":[3,5,7,10,15],"nn":1},"Bestickte Tunika":{"g":"Kleidermacher","zut":["Baumwollrolle","Seidenfaden"],"lv":{"1":[13,"02:00:00",[60,10],302,28],"2":[16,"02:00:00",[60,10],302,35],"3":[20,"02:00:00",[60,10],302,43],"4":[24,"02:00:00",[60,10],302,54],"5":[29,"02:00:00",[60,10],302,66],"6":[35,"02:00:00",[60,10],302,82],"7":[43,"02:00:00",[60,10],302,102],"8":[52,"02:00:00",[60,10],302,125],"9":[62,"02:00:00",[60,10],302,155]},"frei":48,"bib":[2,4,6,8,10],"nn":1},"Vorhang":{"g":"Kleidermacher","zut":["Baumwollrolle","Seidenstoff"],"lv":{"1":[25,"00:20:00",[40,20],50,7],"2":[30,"00:20:00",[40,20],50,10],"3":[36,"00:20:00",[40,20],50,13],"4":[43,"00:20:00",[40,20],50,17],"5":[52,"00:20:00",[40,20],50,23],"6":[62,"00:20:00",[40,20],50,30],"7":[75,"00:20:00",[40,20],50,39],"8":[90,"00:20:00",[40,20],50,50],"9":[107,"00:20:00",[40,20],50,64]},"frei":48,"bib":[3,5,7,10,15],"nn":1},"Hängematte":{"g":"Schneider","zut":["Baumwollrolle","Palmholz"],"lv":{"1":[20,"12:00:00",[70,250],2650,122],"2":[24,"12:00:00",[70,250],2650,148],"3":[29,"12:00:00",[70,250],2650,179],"4":[35,"12:00:00",[70,250],2650,216],"5":[41,"12:00:00",[70,250],2650,261],"6":[50,"12:00:00",[70,250],2650,316],"7":[60,"12:00:00",[70,250],2650,382],"8":[72,"12:00:00",[70,250],2650,462],"9":[86,"12:00:00",[70,250],2650,559],"10":[103,"12:00:00",[70,250],2650,676]},"frei":45,"bib":[2,4,6,8,10],"nn":1},"Gong":{"g":"Instrumentenbauer","zut":["Holzbrett","Bambus"],"lv":{"1":[10,"01:30:00",[30,120],331,22],"2":[12,"01:30:00",[30,120],331,28],"3":[14,"01:30:00",[30,120],331,35],"4":[17,"01:30:00",[30,120],331,43],"5":[21,"01:30:00",[30,120],331,54],"6":[25,"01:30:00",[30,120],331,67],"7":[30,"01:30:00",[30,120],331,84],"8":[36,"01:30:00",[30,120],331,104]},"frei":54,"bib":[1,2,3,4,5],"nn":1},"Kupferbarren":{"g":"Giesserei","zut":["Kupfererz"],"lv":{"1":[60,"03:00:00",[17],227,39],"2":[60,"02:51:00",[16],227,39],"3":[60,"02:42:27",[15],227,39],"4":[60,"02:34:20",[15],227,39],"5":[60,"02:26:37",[14],227,39],"6":[60,"02:19:17",[13],227,39],"7":[60,"02:12:19",[12],227,39],"8":[60,"02:05:42",[12],227,39],"9":[60,"01:59:25",[11],227,39],"10":[60,"01:53:27",[11],227,39],"11":[60,"01:47:46",[10],227,39],"12":[60,"01:42:23",[10],227,39],"13":[60,"01:37:16",[9],227,39]},"frei":27,"bib":[6,12,18,24,30],"nn":1},"Eisenbarren":{"g":"Giesserei","zut":["Eisenerz"],"lv":{"1":[20,"06:00:00",[80],454,69],"2":[20,"05:42:00",[76],454,69],"3":[20,"05:24:54",[72],454,69],"4":[20,"05:08:39",[69],454,69],"5":[20,"04:53:13",[65],454,69],"6":[20,"04:38:34",[62],454,69],"7":[20,"04:24:38",[59],454,69],"8":[20,"04:11:24",[56],454,69],"9":[20,"03:58:50",[53],454,69],"10":[20,"03:46:53",[50],454,69],"11":[20,"03:35:33",[48],454,69],"12":[20,"03:24:46",[46],454,69],"13":[20,"03:14:32",[43],454,69]},"frei":27,"bib":[2,4,6,8,10],"nn":1},"Tasse Kaffee":{"g":"Kaffeeroesterei","zut":["gemahl. Kaffee"],"lv":{"1":[15,"02:00:00",[15],0,0],"2":[18,"02:00:00",[15],0,0],"3":[22,"02:00:00",[15],0,0],"4":[26,"02:00:00",[15],0,0],"5":[31,"02:00:00",[15],0,0],"6":[37,"02:00:00",[15],0,0],"7":[45,"02:00:00",[15],0,0],"8":[54,"02:00:00",[15],0,0],"9":[64,"02:00:00",[15],0,0],"10":[77,"02:00:00",[15],0,0],"11":[93,"02:00:00",[15],0,0],"12":[111,"02:00:00",[15],0,0],"13":[134,"02:00:00",[15],0,0],"14":[160,"02:00:00",[15],0,0],"15":[193,"02:00:00",[15],0,0]},"frei":11,"bib":[2,3,5,6,8]},"Baumwollrolle":{"g":"Baumwollweber","zut":["Baumwollgarn"],"lv":{"1":[20,"03:00:00",[8],0,0],"2":[24,"03:00:00",[8],0,0],"3":[29,"03:00:00",[8],0,0],"4":[35,"03:00:00",[8],0,0],"5":[41,"03:00:00",[8],0,0],"6":[50,"03:00:00",[8],0,0],"7":[60,"03:00:00",[8],0,0],"8":[72,"03:00:00",[8],0,0],"9":[86,"03:00:00",[8],0,0],"10":[103,"03:00:00",[8],0,0],"11":[124,"03:00:00",[8],0,0],"12":[149,"03:00:00",[8],0,0],"13":[178,"03:00:00",[8],0,0],"14":[214,"03:00:00",[8],0,0]},"frei":19,"bib":[2,4,6,8,10]},"Kupferbleche":{"g":"Kupferschmiede","zut":["Kupfererz"],"lv":{"1":[20,"03:00:00",[20],0,0],"2":[24,"03:00:00",[20],0,0],"3":[29,"03:00:00",[20],0,0],"4":[35,"03:00:00",[20],0,0],"5":[41,"03:00:00",[20],0,0],"6":[50,"03:00:00",[20],0,0],"7":[60,"03:00:00",[20],0,0],"8":[72,"03:00:00",[20],0,0],"9":[86,"03:00:00",[20],0,0],"10":[103,"03:00:00",[20],0,0],"11":[124,"03:00:00",[20],0,0],"12":[149,"03:00:00",[20],0,0]},"frei":31,"bib":[2,4,6,8,10]},"Seidenfaden":{"g":"Spinnerei","zut":["Seidenkokon"],"lv":{"1":[15,"00:10:00",[15],18,4],"2":[15,"00:09:30",[14],18,4],"3":[15,"00:09:02",[14],18,4],"4":[15,"00:08:34",[13],18,4],"5":[15,"00:08:09",[12],18,4],"6":[15,"00:07:44",[12],18,4],"7":[15,"00:07:21",[11],18,4],"8":[15,"00:06:59",[10],18,4],"9":[15,"00:06:38",[10],18,4],"10":[15,"00:06:18",[9],18,4],"11":[15,"00:05:59",[9],18,4],"12":[15,"00:05:41",[9],18,4],"13":[15,"00:05:24",[8],18,4],"14":[15,"00:05:08",[8],18,4],"15":[15,"00:04:53",[7],18,4]},"frei":18,"bib":[1,2,3,4,5]},"Eis-Kaffee":{"g":"Bar","zut":["Tasse Kaffee","Milch"],"lv":{"1":[20,"01:00:00",[35,35],166,16],"2":[24,"01:00:00",[35,35],166,20],"3":[29,"01:00:00",[35,35],166,26],"4":[35,"01:00:00",[35,35],166,33],"5":[41,"01:00:00",[35,35],166,41],"6":[50,"01:00:00",[35,35],166,52],"7":[60,"01:00:00",[35,35],166,66],"8":[72,"01:00:00",[35,35],166,82],"9":[86,"01:00:00",[35,35],166,103],"10":[103,"01:00:00",[35,35],166,129],"11":[124,"01:00:00",[35,35],166,161]},"frei":35,"bib":[2,4,6,8,10],"nn":1},"Poncho":{"g":"Schneider","zut":["Baumwollrolle","Palmholz"],"lv":{"1":[60,"03:00:00",[60,120],497,39],"2":[72,"03:00:00",[60,120],497,48],"3":[86,"03:00:00",[60,120],497,59],"4":[104,"03:00:00",[60,120],497,73],"5":[124,"03:00:00",[60,120],497,89],"6":[149,"03:00:00",[60,120],497,109],"7":[179,"03:00:00",[60,120],497,134],"8":[215,"03:00:00",[60,120],497,165],"9":[258,"03:00:00",[60,120],497,202],"10":[310,"03:00:00",[60,120],497,248]},"frei":45,"bib":[6,12,18,24,30],"nn":1},"Marimba":{"g":"Instrumentenbauer","zut":["Holzbrett","Bambus"],"lv":{"1":[20,"06:00:00",[50,500],1325,69],"2":[24,"06:00:00",[50,500],1325,84],"3":[29,"06:00:00",[50,500],1325,102],"4":[35,"06:00:00",[50,500],1325,124],"5":[41,"06:00:00",[50,500],1325,151],"6":[50,"06:00:00",[50,500],1325,184],"7":[60,"06:00:00",[50,500],1325,224],"8":[72,"06:00:00",[50,500],1325,272]},"frei":54,"bib":[2,4,6,8,10],"nn":1},"Eisenbleche":{"g":"Eisenschmiede","zut":["Eisenbarren"],"lv":{"1":[10,"01:30:00",[7],170,22],"2":[12,"01:30:00",[7],170,28],"3":[14,"01:30:00",[7],170,35],"4":[17,"01:30:00",[7],170,43],"5":[21,"01:30:00",[7],170,54],"6":[25,"01:30:00",[7],170,67],"7":[30,"01:30:00",[7],170,84],"8":[36,"01:30:00",[7],170,104],"9":[43,"01:30:00",[7],170,129],"10":[52,"01:30:00",[7],170,160],"11":[62,"01:30:00",[7],170,198],"12":[74,"01:30:00",[7],170,245]},"frei":33,"bib":[1,2,3,4,5],"nn":1},"Seidenballen":{"g":"Seidenweber","zut":["Seidenfaden"],"lv":{"1":[5,"00:20:00",[7],25,7],"2":[6,"00:20:00",[7],25,10],"3":[7,"00:20:00",[7],25,13],"4":[9,"00:20:00",[7],25,17],"5":[10,"00:20:00",[7],25,23],"6":[12,"00:20:00",[7],25,30],"7":[15,"00:20:00",[7],25,39],"8":[18,"00:20:00",[7],25,50],"9":[21,"00:20:00",[7],25,64],"10":[26,"00:20:00",[7],25,83],"11":[31,"00:20:00",[7],25,105],"12":[37,"00:20:00",[7],25,134]},"frei":1,"bib":[1,2,3],"nn":1},"Milchreis":{"g":"Imbiss-Stand","zut":["Milch","Reis"],"lv":{"1":[40,"04:00:00",[25,120],454,49],"2":[48,"04:00:00",[25,120],454,60],"3":[58,"04:00:00",[25,120],454,73],"4":[69,"04:00:00",[25,120],454,90],"5":[83,"04:00:00",[25,120],454,110],"6":[100,"04:00:00",[25,120],454,134],"7":[119,"04:00:00",[25,120],454,164],"8":[143,"04:00:00",[25,120],454,201],"9":[172,"04:00:00",[25,120],454,245],"10":[206,"04:00:00",[25,120],454,299],"11":[248,"04:00:00",[25,120],454,365]},"frei":1,"bib":[4,8,12,16,20],"nn":1},"Zier-Katana":{"g":"Geschenkwerkstatt","zut":["Schrott","Fell"],"lv":{"1":[5,"00:45:00",[25,135],113,13],"2":[6,"00:45:00",[25,135],113,17],"3":[7,"00:45:00",[25,135],113,22],"4":[9,"00:45:00",[25,135],113,28],"5":[10,"00:45:00",[25,135],113,35],"6":[12,"00:45:00",[25,135],113,45],"7":[15,"00:45:00",[25,135],113,57],"8":[18,"00:45:00",[25,135],113,72]},"frei":54,"bib":[1,2],"nn":1},"Brot":{"g":"Bäckerei","zut":["Mehl"],"lv":{"1":[10,"00:10:00",[8],18,4],"2":[12,"00:10:00",[8],18,6],"3":[14,"00:10:00",[8],18,9],"4":[17,"00:10:00",[8],18,12],"5":[21,"00:10:00",[8],18,17],"6":[25,"00:10:00",[8],18,22],"7":[30,"00:10:00",[8],18,30],"8":[36,"00:10:00",[8],18,39],"9":[43,"00:10:00",[8],18,52],"10":[52,"00:10:00",[8],18,67],"11":[62,"00:10:00",[8],18,87],"12":[74,"00:10:00",[8],18,111],"13":[89,"00:10:00",[8],18,143],"14":[107,"00:10:00",[8],18,182],"15":[128,"00:10:00",[8],18,231],"16":[154,"00:10:00",[8],18,293],"17":[185,"00:10:00",[8],18,370]},"frei":1,"bib":[1,2,3,4,5],"baende":2,"nn":1},"Frühstück":{"g":"Diner","zut":["Brot","Tasse Kaffee"],"lv":{"1":[15,"00:20:00",[25,20],72,7],"2":[18,"00:20:00",[25,20],72,10],"3":[22,"00:20:00",[25,20],72,13],"4":[26,"00:20:00",[25,20],72,17],"5":[31,"00:20:00",[25,20],72,23],"6":[37,"00:20:00",[25,20],72,30],"7":[45,"00:20:00",[25,20],72,39],"8":[54,"00:20:00",[25,20],72,50],"9":[64,"00:20:00",[25,20],72,64],"10":[77,"00:20:00",[25,20],72,83],"11":[93,"00:20:00",[25,20],72,105],"12":[111,"00:20:00",[25,20],72,134],"13":[134,"00:20:00",[25,20],72,169],"14":[160,"00:20:00",[25,20],72,214]},"frei":1,"bib":[2,3,5,6,8],"nn":1},"Goldbleche":{"g":"Goldschmiede","zut":["Goldbarren"],"lv":{"1":[20,"06:00:00",[7],1289,69],"2":[24,"06:00:00",[7],1289,84],"3":[29,"06:00:00",[7],1289,102],"4":[35,"06:00:00",[7],1289,124],"5":[41,"06:00:00",[7],1289,151],"6":[50,"06:00:00",[7],1289,184],"7":[60,"06:00:00",[7],1289,224],"8":[72,"06:00:00",[7],1289,272],"9":[86,"06:00:00",[7],1289,331],"10":[103,"06:00:00",[7],1289,402],"11":[124,"06:00:00",[7],1289,489],"12":[149,"06:00:00",[7],1289,594],"13":[178,"06:00:00",[7],1289,722]},"frei":1,"bib":[2,4,6,8,10],"nn":1},"Standuhr":{"g":"Handwerksbetrieb","zut":["Holzbrett","Palmholz"],"lv":{"1":[5,"01:00:00",[60,90],430,16],"2":[6,"01:00:00",[60,90],430,20],"3":[7,"01:00:00",[60,90],430,26],"4":[9,"01:00:00",[60,90],430,33],"5":[10,"01:00:00",[60,90],430,41],"6":[12,"01:00:00",[60,90],430,52],"7":[15,"01:00:00",[60,90],430,66],"8":[18,"01:00:00",[60,90],430,82],"9":[21,"01:00:00",[60,90],430,103]},"frei":1,"bib":[1,2],"nn":1}};
+let pstate={};              // produkt -> {lvl, anzahl}
+// gridP entfernt
+
+// Baut die HTML einer Produktions-Kachel
+// Max. Durchläufe (Slots) je Gebäudelevel – produktübergreifend gleich
+function maxDurchlaeufe(lvl){
+  if(lvl<=2) return 4;
+  if(lvl<=5) return 5;
+  if(lvl<=8) return 6;
+  if(lvl<=11) return 7;
+  if(lvl<=14) return 8;
+  return 9;  // 15-17
+}
+// Nur diese Gebäude gibt es EINFACH; alle anderen können mehrfach vorkommen
+// -> Produkt bekommt dann eine Gebäude-Liste (Level je Gebäude einstellbar)
+const SINGLE_GEB=new Set(["Windmuehle","Windmühle","Futtermuehle","Futtermühle",
+  "Spinnerei","Giesserei","Gießerei","Silo"]);
+
+function prodKachelHTML(p){
+    const d=PROD[p];
+    const lvls=Object.keys(d.lv).map(Number).sort((a,b)=>a-b);
+    const maxL=Math.max(...lvls);
+    const steigt = d.lv["1"][0] !== d.lv[String(maxL)][0];
+    const st = pstate[p] || (pstate[p]={lvl:Math.min(5,maxL), anzahl:1});
+    const multi = !SINGLE_GEB.has(d.g);
+    // Bibliothek-Bonus (additiv auf Ausgabe pro Durchlauf) – gilt für alle Gebäude gleich
+    const bibr=d.bib||[];
+    const bibst=st.bib||0;
+    const baende=d.baende||1;
+    const bibEinzel=s=>(s>=1 && s<=bibr.length)?bibr[s-1]:0;
+    const bibst2=st.bib2||0;
+    const bibBon=bibEinzel(bibst) + (baende>=2?bibEinzel(bibst2):0);
+
+    // Ausgabe-Rechner für ein Gebäude auf Level lvl.
+    // Mehrfach-Gebäude (steigend): n = Anzahl Gebäude (keine Durchlauf-Grenze).
+    // Einzelgebäude (konstant): n = Durchläufe, begrenzt durchs Level.
+    const proGeb=(lvl,n)=>{
+      const row=d.lv[String(lvl)]||d.lv[String(maxL)];
+      const ausgabe=row[0]+bibBon;
+      const maxN=multi?99:maxDurchlaeufe(lvl);
+      const nn=Math.min(maxN,Math.max(1,n||1));
+      return {row, ausgabe, maxN, n:nn};
+    };
+
+    // Bibliothek-Regler (einheitlich: eine Zeile, immer ganz oben im Detail; 2 Bänder bei baende>=2)
+    let bibZeile="";
+    if(bibr.length){
+      const mkOpts=(sel)=>[0,...bibr.map((_,i)=>i+1)].map(s=>{
+        const lab=s===0?"0 (aus)":`Stufe ${s}`;
+        return `<option value="${s}"${s===sel?" selected":""}>${lab}</option>`;
+      }).join("");
+      const lab1=baende>=2?"📚 Bibliothek I":"📚 Bibliothek";
+      bibZeile=`<div class="feldzeile" style="margin-bottom:8px"><div class="fz-top">`+
+        `<span class="plab" style="color:var(--muted);font-size:.85rem">${lab1}</span>`+
+        `<select data-pbib="${p}" style="margin-left:auto">${mkOpts(bibst)}</select></div>`+
+        (baende>=2?`<div class="fz-top" style="margin-top:6px">`+
+          `<span class="plab" style="color:var(--muted);font-size:.85rem">📚 Bibliothek II</span>`+
+          `<select data-pbib2="${p}" style="margin-left:auto">${mkOpts(bibst2)}</select></div>`:``)+
+        `</div>`;
+    }
+
+    const isOpen = offen===p;
+
+    // ---- MEHRFACH-GEBÄUDE: Liste wie bei Feder-Feldern ----
+    if(multi){
+      if(!Array.isArray(st.geb)){
+        st.geb=[{lvl: st.lvl||Math.min(5,maxL), anzahl: st.anzahl||1}];
+      }
+      let gesamt=0, zutSum=d.zut.map(()=>0), muenzSum=0, sterneSum=0;
+      const zeilenArr=st.geb.map((g,idx)=>{
+        const {row,ausgabe,maxN,n}=proGeb(g.lvl,g.anzahl);
+        if(g.anzahl!==n) g.anzahl=n;
+        gesamt+=ausgabe*n;
+        d.zut.forEach((_,i)=>zutSum[i]+=row[2][i]*n);
+        muenzSum+=row[3]*n; sterneSum+=row[4]*n;
+        const opts=lvls.map(l=>`<option value="${l}"${l===g.lvl?" selected":""}>Lvl ${l}</option>`).join("");
+        return `<div class="gebzeile">`+
+            `<select data-pgeb="${p}" data-idx="${idx}" aria-label="${p} Gebäude ${idx+1} Level">${opts}</select>`+
+            `<label class="gmenge">× `+
+              `<input type="number" inputmode="numeric" min="1" max="${maxN}" step="1" value="${n}" `+
+              `data-pgebn="${p}" data-idx="${idx}" aria-label="${p} Anzahl Gebäude Level ${g.lvl}"> Geb.</label>`+
+            `<span class="fprod mE">${ausgabe*n}</span>`+
+            `<button class="delf" data-pgebdel="${p}" data-idx="${idx}" title="entfernen" aria-label="Zeile ${idx+1} entfernen">✕</button>`+
+          `</div>`;
+      }).join("");
+      const zutTxt=d.zut.map((z,i)=>`${zutSum[i]}× ${z}`).join(" + ");
+      const anzGeb=st.geb.reduce((s,g)=>s+(g.anzahl||1),0);
+      let detail="";
+      if(isOpen){
+        detail=`<div class="detail">`+
+          bibZeile+
+          `<div class="felder">${zeilenArr}</div>`+
+          `<button class="addf" data-pgebadd="${p}" data-def="${Math.min(5,maxL)}">+ anderes Level</button>`+
+          `<details class="pdetail"><summary>Zutaten &amp; Kosten</summary>`+
+            `<div class="zeil"><span>Zutaten gesamt</span><span class="zut">${zutTxt}</span></div>`+
+            `<div class="zeil"><span>Zeit je Durchlauf</span><b>${d.lv[String(st.geb[0].lvl)][1]}</b></div>`+
+            `<div class="zeil"><span>Münzen gesamt</span><b>${muenzSum.toLocaleString("de-DE")}</b></div>`+
+            `<div class="zeil"><span>Sterne gesamt</span><b>${sterneSum}</b></div>`+
+          `</details></div>`;
+      }
+      return `<h3>${ico(p)}<span class="pname">${p}</span>`+
+          `</h3>`+
+        `<div class="vals"><div class="v E"><span class="lab">Produktion</span>`+
+          `<span class="n">${gesamt}</span></div></div>`+
+        (isOpen?``:`<span class="tap">Tippen zum Bearbeiten</span>`)+
+        detail;
+    }
+
+    // ---- EINZELGEBÄUDE ----
+    const cur = st.lvl;
+    const {row,ausgabe:ausgabeProDurchlauf,maxN,n}=proGeb(cur, st.anzahl);
+    if(st.anzahl!==n){ st.anzahl=n; }
+    const [ , zeit, zutMengen, muenzen, sterne] = row;
+    const opts = lvls.map(l=>`<option value="${l}"${l===cur?" selected":""}>Lvl ${l}</option>`).join("");
+    const zutTxt = d.zut.map((z,i)=>`${zutMengen[i]*n}× ${z}`).join(" + ");
+    let detail="";
+    if(isOpen){
+      detail=`<div class="detail">`+
+        bibZeile+
+        `<div class="feldzeile"><div class="fz-top">`+
+          `<span class="plab" style="color:var(--muted);font-size:.85rem">Gebäude-Level</span>`+
+          `<select data-pp="${p}" style="margin-left:auto">${opts}</select></div></div>`+
+        `<div class="feldzeile" style="margin-top:7px"><div class="fz-top">`+
+          `<span class="plab" style="color:var(--muted);font-size:.85rem">${steigt?"Menge":"Durchläufe (max "+maxN+")"}</span>`+
+          `<label class="gmenge" style="margin-left:auto"><input type="number" inputmode="numeric" min="1" max="${maxN}" step="1" value="${n}" data-pn="${p}" aria-label="${p} Menge"></label></div></div>`+
+        `<details class="pdetail"><summary>Zutaten &amp; Kosten</summary>`+
+          `<div class="zeil"><span>je Durchlauf</span><b>${ausgabeProDurchlauf}</b></div>`+
+          `<div class="zeil"><span>Zutaten gesamt</span><span class="zut">${zutTxt}</span></div>`+
+          `<div class="zeil"><span>Zeit je Durchlauf</span><b>${zeit}</b></div>`+
+          `<div class="zeil"><span>Münzen gesamt</span><b>${(muenzen*n).toLocaleString("de-DE")}</b></div>`+
+          `<div class="zeil"><span>Sterne gesamt</span><b>${sterne*n}</b></div>`+
+        `</details></div>`;
+    }
+    return `<h3>${ico(p)}<span class="pname">${p}</span>`+
+        `</h3>`+
+      `<div class="vals"><div class="v E"><span class="lab">Produktion</span>`+
+        `<span class="n">${ausgabeProDurchlauf*n}</span></div></div>`+
+      (isOpen?``:`<span class="tap">Tippen zum Bearbeiten</span>`)+
+      detail;
+}
+
+// Einzelgebäude mit Produkt-Dropdown: eine Kachel fürs Gebäude, Produkt wählbar.
+function einzelGebKachelHTML(geb, produkte){
+    const key="GEB::"+geb;
+    const st = pstate[key] || (pstate[key]={produkt:produkte[0], lvl:5, anzahl:1, bib:0});
+    if(!produkte.includes(st.produkt)) st.produkt=produkte[0];
+    const p=st.produkt;
+    const d=PROD[p];
+    const lvls=Object.keys(d.lv).map(Number).sort((a,b)=>a-b);
+    const maxL=Math.max(...lvls);
+    const steigt = d.lv["1"][0] !== d.lv[String(maxL)][0];
+    const cur=Math.min(st.lvl||5, maxL);
+    const bibr=d.bib||[], bibst=st.bib||0;
+    const bibBon=(bibst>=1&&bibst<=bibr.length)?bibr[bibst-1]:0;
+    const row=d.lv[String(cur)];
+    const ausgabe=row[0]+bibBon;
+    const maxN=steigt?99:maxDurchlaeufe(cur);
+    const n=Math.min(maxN,Math.max(1,st.anzahl||1));
+    if(st.anzahl!==n) st.anzahl=n;
+    const [,zeit,zutMengen,muenzen,sterne]=row;
+
+    const isOpen=offen===key;
+    const prodOpts=produkte.map(x=>`<option value="${x.replace(/"/g,'&quot;')}"${x===p?" selected":""}>${x}</option>`).join("");
+    const lvlOpts=lvls.map(l=>`<option value="${l}"${l===cur?" selected":""}>Lvl ${l}</option>`).join("");
+    const zutTxt=d.zut.map((z,i)=>`${zutMengen[i]*n}× ${z}`).join(" + ");
+    let bibZeile="";
+    if(bibr.length){
+      const bopts=[0,...bibr.map((_,i)=>i+1)].map(s=>{
+        const lab=s===0?"0 (aus)":`Stufe ${s}`;
+        return `<option value="${s}"${s===bibst?" selected":""}>${lab}</option>`;
+      }).join("");
+      bibZeile=`<div class="feldzeile" style="margin-bottom:8px"><div class="fz-top">`+
+        `<span class="plab" style="color:var(--muted);font-size:.85rem">📚 Bibliothek</span>`+
+        `<select data-gbib="${geb}" style="margin-left:auto">${bopts}</select></div></div>`;
+    }
+    let detail="";
+    if(isOpen){
+      detail=`<div class="detail">`+
+        `<div class="feldzeile" style="margin-bottom:8px"><div class="fz-top">`+
+          `<span class="plab" style="color:var(--muted);font-size:.85rem">Produkt</span>`+
+          `<select data-gprod="${geb}" style="margin-left:auto">${prodOpts}</select></div></div>`+
+        bibZeile+
+        `<div class="feldzeile"><div class="fz-top">`+
+          `<span class="plab" style="color:var(--muted);font-size:.85rem">Gebäude-Level</span>`+
+          `<select data-glvl="${geb}" style="margin-left:auto">${lvlOpts}</select></div></div>`+
+        `<div class="feldzeile" style="margin-top:7px"><div class="fz-top">`+
+          `<span class="plab" style="color:var(--muted);font-size:.85rem">${steigt?"Menge":"Durchläufe (max "+maxN+")"}</span>`+
+          `<label class="gmenge" style="margin-left:auto"><input type="number" inputmode="numeric" min="1" max="${maxN}" step="1" value="${n}" data-gn="${geb}" aria-label="${geb} Menge"></label></div></div>`+
+        `<details class="pdetail"><summary>Zutaten &amp; Kosten</summary>`+
+          `<div class="zeil"><span>je Durchlauf</span><b>${ausgabe}</b></div>`+
+          `<div class="zeil"><span>Zutaten gesamt</span><span class="zut">${zutTxt}</span></div>`+
+          `<div class="zeil"><span>Zeit je Durchlauf</span><b>${zeit}</b></div>`+
+          `<div class="zeil"><span>Münzen gesamt</span><b>${(muenzen*n).toLocaleString("de-DE")}</b></div>`+
+          `<div class="zeil"><span>Sterne gesamt</span><b>${sterne*n}</b></div>`+
+        `</details></div>`;
+    }
+    return `<h3>${ico(p)}<span class="pname">${p}</span></h3>`+
+      `<div class="vals"><div class="v E"><span class="lab">Produktion</span>`+
+        `<span class="n">${ausgabe*n}</span></div></div>`+
+      (isOpen?``:`<span class="tap">Tippen zum Bearbeiten</span>`)+
+      detail;
+}
+
+// Gebäude-Reihenfolge (sinnvoll gruppiert)
+const GEB_ORDER=["Feld","Kuhstall","Windmühle","Futtermühle","Bäckerei","Silo","Kieferngärtnerei",
+  "Diner","Plantage","Straußenfarm","Kaffeerösterei","Spinnerei","Baumwollweber","Palmengärtnerei",
+  "Mine","Bambusgärtnerei","Kupferschmiede","Gießerei","Giesserei","Goldschmiede","Ziegenfarm",
+  "Bar","Schneider","Instrumentenbauer","Imbiss-Stand","Maßschneider","Massschneider","Kleidermacher",
+  "Handwerksbetrieb","Geschenkwerkstatt","Geschenkwertstatt"];
+const GEB_ICON={Feld:"🌾",Kuhstall:"🐄",Windmühle:"🌬️",Futtermühle:"🐮",Bäckerei:"🍞",Silo:"🧪",
+  Kieferngärtnerei:"🌲","Diner":"🍳",Plantage:"🌱",Straußenfarm:"🦃",Kaffeerösterei:"☕",Spinnerei:"🧵",
+  Baumwollweber:"🧶",Palmengärtnerei:"🌴",Mine:"⛏️",Bambusgärtnerei:"🎋",Kupferschmiede:"🟫",
+  Giesserei:"🪙",Ziegenfarm:"🐐",Bar:"🧊",Schneider:"🧣",Instrumentenbauer:"🎶","Imbiss-Stand":"🍚",
+  Massschneider:"🧥",Kleidermacher:"👚"};
+
+// Zentrale Render-Funktion: gruppiert alle Produkte nach Gebäude
+// Produkt -> Insel (feste Zuordnung)
+const INSEL_PROD={"Milch":1,"Brot":1,"Feder":2,"Tasse Kaffee":2,"Baumwollrolle":2,"Palmholz":2,"Kupferbleche":2,"Eis-Kaffee":2,"Poncho":2,"Marimba":2,"Golderz":3,"Bambus":3,"Kaschmir":3,"Milchreis":3,"Bestickte Tunika":3,"Zier-Katana":3,"Weizen":1,"Gänseblümchen":1,"Mais":1,"Karotten":1,"Seidenfaden":2,"Mehl":1,"gemahl. Kaffee":1,"Kuhfutter":1,"Straußenfutter":1,"Tierhausfutter":1,"Ziegenfutter":1,"Dünger":1,"Baumwollgarn":2,"Goldbarren":3,"Bambusreis":3,"Jacke":1,"Steppdecke":1,"Vorhang":3,"Hängematte":2,"Gong":2,"Kupferbarren":3,"Eisenbarren":3,"Kupfererz":3,"Eisenerz":3,"Kaffeebohnen":2,"Baumwolle":2,"Seidenkokon":2,"Eisenbleche":3,"Reis":3,"Seidenballen":3,"Frühstück":1,"Kiefernholz":1,"Goldbleche":1,"Standuhr":1};
+function produktAufInsel(p){ return (INSEL_PROD[p]||3) === (aktiveInsel+1); }
+
+function render(){
+  const q=$("#suche").value.trim().toLowerCase();
+  const lvl=+($("#spielerlvl").value||99);
+  const box=$("#alle");
+  box.innerHTML="";
+  let gE=0,gF=0,gS=0,gMist=0;
+
+  // Produkte je Gebäude sammeln – nur die der aktiven Insel
+  const byGeb={};
+  const add=(p,geb,typ)=>{ (byGeb[geb]=byGeb[geb]||[]).push({p,typ}); };
+  for(const p in DATA){ if((DATA[p].frei||1)<=lvl && produktAufInsel(p)) add(p,DATA[p].g,"ernte"); }
+  for(const p in PROD){ if((PROD[p].frei||1)<=lvl && produktAufInsel(p)) add(p,PROD[p].g,"prod"); }
+
+  // Gebäude in sinnvoller Reihenfolge
+  const gebNamen=Object.keys(byGeb).sort((a,b)=>{
+    let ia=GEB_ORDER.indexOf(a), ib=GEB_ORDER.indexOf(b);
+    if(ia<0)ia=999; if(ib<0)ib=999;
+    return ia-ib || a.localeCompare(b,"de");
+  });
+
+  // Ein durchgehendes Grid; Produkte derselben Stätte stehen nebeneinander (nach Gebäude sortiert)
+  const grid=document.createElement("div");
+  grid.className="grid";
+  for(const geb of gebNamen){
+    const items=byGeb[geb].filter(({p})=>!q || p.toLowerCase().includes(q) || geb.toLowerCase().includes(q))
+      .sort((a,b)=>a.p.localeCompare(b.p,"de"));
+    if(!items.length) continue;
+
+    // EINZELGEBÄUDE mit mehreren Produkten -> EINE Kachel mit Produkt-Dropdown
+    const prodItems=items.filter(it=>it.typ==="prod");
+    if(SINGLE_GEB.has(geb) && prodItems.length>1){
+      const card=document.createElement("div");
+      const key="GEB::"+geb;
+      card.dataset.card=key; card.dataset.typ="geb";
+      card.className="card"+(offen===key?" open":"");
+      card.innerHTML=einzelGebKachelHTML(geb, prodItems.map(it=>it.p));
+      grid.appendChild(card);
+      continue;
+    }
+
+    for(const {p,typ} of items){
+      const card=document.createElement("div");
+      card.dataset.card=p; card.dataset.typ=typ;
+      if(typ==="ernte"){
+        const r=ernteKachelHTML(p);
+        card.className="card"+(r.isOpen?" open":"");
+        card.innerHTML=r.html;
+        gE+=r.E; gF+=r.F; gS+=r.S; gMist+=r.mist;
+      }else{
+        card.className="card"+(offen===p?" open":"");
+        card.innerHTML=prodKachelHTML(p);
+      }
+      grid.appendChild(card);
+    }
+  }
+  box.appendChild(grid);
+
+  // Mist: diese Insel (erste Zahl) + Summe ALLER Inseln (zweite Zahl)
+  const mistDiese = mistFuerState(state);
+  let mistAlle=0;
+  if(inseln){
+    for(let i=0;i<inseln.length;i++){
+      const st = (i===aktiveInsel) ? state : (inseln[i].ernte||{});
+      mistAlle += mistFuerState(st);
+    }
+  } else { mistAlle = mistDiese; }
+
+  const any=mistAlle>0;
+  $("#sumbar").hidden=!any;
+  const sb=[];
+  if(mistAlle>0) sb.push(`<img class="mistpik" src="icons/mist.svg" alt="Mist"><span class="bigMist">${fmt(mistDiese)}/${fmt(mistAlle)}</span>`);
+  $("#sumbar").innerHTML=sb.join("");
+  bindInputs();
+}
+
+// Mist-Summe für einen gegebenen Insel-State (alle Mist-Produkte, deren Felder in diesem State liegen)
+function mistFuerState(st){
+  let sum=0;
+  for(const p in DATA){
+    const d=DATA[p];
+    if(!d.mist || !st[p] || !Array.isArray(st[p].felder)) continue;
+    for(const f of st[p].felder){
+      const anz=Math.max(1,f.n||1);
+      sum += ((d.mist[String(f.l)]||0)+mistBibGlobal)*anz;
+    }
+  }
+  return sum;
+}
+function renderProd(){}
+
+/* ===== INSEL-SYSTEM (3 Inseln, umbenennbar, localStorage) ===== */
+/* Profile: 2 komplett getrennte Datensaetze. Jeder hat eigenen localStorage-Key. */
+let aktivesProfil=1;
+const profilNamen={1:"Spieler 1",2:"Spieler 2"};
+function ladeProfilMeta(){
+  try{ aktivesProfil=+(localStorage.getItem("sunshine_profil")||1)||1; }catch(e){ aktivesProfil=1; }
+  if(aktivesProfil!==1&&aktivesProfil!==2) aktivesProfil=1;
+  try{
+    const n=JSON.parse(localStorage.getItem("sunshine_profilnamen"));
+    if(n&&n[1]) profilNamen[1]=n[1];
+    if(n&&n[2]) profilNamen[2]=n[2];
+  }catch(e){}
+}
+function speichereProfilMeta(){
+  try{
+    localStorage.setItem("sunshine_profil", String(aktivesProfil));
+    localStorage.setItem("sunshine_profilnamen", JSON.stringify(profilNamen));
+  }catch(e){}
+}
+function lsKey(){ return "sunshine_inseln_v1_p"+aktivesProfil; }
+let inseln, aktiveInsel=0, spielerLvl=99;  // Spieler-Level ist GLOBAL (alle Inseln gleich)
+let mistBibGlobal=0;  // gemeinsame Mist-Bibliothek (0..3), wirkt synchron auf alle Mist-Sorten
+
+function ladeInseln(){
+  let d=null;
+  try{ d=JSON.parse(localStorage.getItem(lsKey())); }catch(e){}
+  // Einmal-Migration: alter gemeinsamer Key -> Profil 1
+  if(!d && aktivesProfil===1){
+    try{ const alt=localStorage.getItem("sunshine_inseln_v1"); if(alt){ d=JSON.parse(alt); localStorage.setItem(lsKey(),alt); } }catch(e){}
+  }
+  if(!d || !Array.isArray(d.inseln) || d.inseln.length!==3){
+    d={ aktiv:0, inseln:[
+      {name:"Haven", ernte:{}, prod:{}},
+      {name:"Tropicalis", ernte:{}, prod:{}},
+      {name:"Jade", ernte:{}, prod:{}}
+    ]};
+  }
+  inseln=d.inseln; aktiveInsel=d.aktiv||0;
+  // Level global: neues Feld d.lvl; Rueckfall auf altes per-Insel-lvl aus Bestandsdaten
+  spielerLvl = d.lvl || inseln[aktiveInsel].lvl || 99;
+  mistBibGlobal = d.mistBib || 0;
+}
+function speichereInseln(){
+  // aktuellen state/pstate in aktive Insel sichern; Level global
+  inseln[aktiveInsel].ernte = state;
+  inseln[aktiveInsel].prod  = pstate;
+  spielerLvl = +($("#spielerlvl").value||99);
+  try{ localStorage.setItem(lsKey(), JSON.stringify({aktiv:aktiveInsel, lvl:spielerLvl, mistBib:mistBibGlobal, inseln})); }catch(e){}
+}
+function aktiviereInsel(i){
+  inseln[aktiveInsel].ernte = state;
+  inseln[aktiveInsel].prod  = pstate;
+  aktiveInsel=i;
+  state  = inseln[i].ernte || {};
+  pstate = inseln[i].prod  || {};
+  // Level bleibt gleich (global) – Feld nicht ueberschreiben
+  speichereInseln();
+  zeichneInselLeiste();
+  offen=null;
+  render(); renderProd();
+}
+function zeichneInselLeiste(){
+  const box=$("#inseln");
+  box.innerHTML="";
+  inseln.forEach((ins,i)=>{
+    const el=document.createElement("div");
+    el.className="insel"+(i===aktiveInsel?" aktiv":"");
+    el.innerHTML=
+      `<input class="iname" value="${ins.name.replace(/"/g,'&quot;')}" `+
+        `data-iname="${i}" readonly aria-label="Inselname ${i+1}">`+
+      `<button class="iedit" data-iedit="${i}" title="Umbenennen" aria-label="Insel ${i+1} umbenennen">✎</button>`;
+    // Klick auf die Kachel (nicht auf Edit/Input) wechselt Insel
+    el.addEventListener("click",e=>{
+      if(e.target.closest(".iedit")||e.target.classList.contains("iname")&&!e.target.readOnly) return;
+      if(i!==aktiveInsel) aktiviereInsel(i);
+    });
+    box.appendChild(el);
+  });
+  // Umbenennen
+  box.querySelectorAll("[data-iedit]").forEach(b=>{
+    b.addEventListener("click",e=>{
+      e.stopPropagation();
+      const i=+b.dataset.iedit;
+      const inp=box.querySelector(`input[data-iname="${i}"]`);
+      inp.readOnly=false; inp.focus(); inp.select();
+    });
+  });
+  box.querySelectorAll("input[data-iname]").forEach(inp=>{
+    const commit=()=>{
+      const i=+inp.dataset.iname;
+      inseln[i].name = inp.value.trim()||(["Haven","Tropicalis","Jade"][i]||("Insel "+(i+1)));
+      inp.value=inseln[i].name; inp.readOnly=true;
+      speichereInseln();
+    };
+    inp.addEventListener("blur",commit);
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault(); inp.blur();} });
+  });
+}
+
+// Autospeichern: regelmäßig + bei jeder Interaktion im Grid
+document.addEventListener("input", ()=>{ if(inseln) speichereInseln(); }, true);
+document.addEventListener("click", ()=>{ if(inseln) setTimeout(()=>{ if(inseln) speichereInseln(); },0); }, true);
+
+// Spieler-Level-Feld -> neu rendern (filtert) + speichern
+$("#spielerlvl").addEventListener("input",()=>{ render(); renderProd(); if(inseln) speichereInseln(); });
+
+// Profil-Umschalter: 2 getrennte Datensaetze
+function profilAufbauen(){
+  state  = inseln[aktiveInsel].ernte || {};
+  pstate = inseln[aktiveInsel].prod  || {};
+  $("#spielerlvl").value = spielerLvl;
+  zeichneProfilLeiste();
+  zeichneInselLeiste();
+  offen=null;
+  render(); renderProd();
+}
+function wechsleProfil(n){
+  if(n===aktivesProfil) return;
+  if(inseln) speichereInseln();   // aktuelles Profil sichern
+  aktivesProfil=n; speichereProfilMeta();
+  ladeInseln();
+  profilAufbauen();
+}
+function zeichneProfilLeiste(){
+  const box=$("#profile"); if(!box) return;
+  box.innerHTML="";
+  [1,2].forEach(n=>{
+    const el=document.createElement("div");
+    el.className="profil"+(n===aktivesProfil?" aktiv":"");
+    el.innerHTML=
+      `<input class="pname2" value="${String(profilNamen[n]).replace(/"/g,'&quot;')}" data-pname="${n}" readonly aria-label="Spieler ${n}">`+
+      `<button class="iedit" data-pedit="${n}" title="Umbenennen" aria-label="Spieler ${n} umbenennen">✎</button>`;
+    el.addEventListener("click",e=>{
+      if(e.target.closest(".iedit")||(e.target.classList.contains("pname2")&&!e.target.readOnly)) return;
+      wechsleProfil(n);
+    });
+    box.appendChild(el);
+  });
+  box.querySelectorAll("[data-pedit]").forEach(b=>{
+    b.addEventListener("click",e=>{
+      e.stopPropagation();
+      const n=+b.dataset.pedit;
+      const inp=box.querySelector(`input[data-pname="${n}"]`);
+      inp.readOnly=false; inp.focus(); inp.select();
+      const fertig=()=>{ inp.readOnly=true; profilNamen[n]=inp.value.trim()||("Spieler "+n); speichereProfilMeta(); zeichneProfilLeiste(); };
+      inp.addEventListener("blur",fertig,{once:true});
+      inp.addEventListener("keydown",ev=>{ if(ev.key==="Enter"){ev.preventDefault(); inp.blur();} });
+    });
+  });
+}
+
+// Start: Profil + Inseln laden, aktiven state setzen, zeichnen
+ladeProfilMeta();
+ladeInseln();
+profilAufbauen();
+</script>
+
+</body>
+</html>
