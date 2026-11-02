@@ -329,20 +329,24 @@ const RUNE={
   Plant:["Kaffeebohnen","Baumwolle","Seidenkokon"],
   Mine:["Golderz","Eisenerz","Kupfererz"]
 };
-function runeFaktor(p){
-  let f=1;
-  if($("#runeFeld")?.checked && RUNE.Feld.includes(p)) f*=1.10;
-  if($("#runePlant")?.checked && RUNE.Plant.includes(p)) f*=1.10;
-  if($("#runeMine")?.checked && RUNE.Mine.includes(p)) f*=1.10;
-  return f;
+// Rune-Prozent (additiv): je passender aktiver Rune +10 Prozentpunkte
+function runeProzent(p){
+  let pz=0;
+  if($("#runeFeld")?.checked && RUNE.Feld.includes(p)) pz+=10;
+  if($("#runePlant")?.checked && RUNE.Plant.includes(p)) pz+=10;
+  if($("#runeMine")?.checked && RUNE.Mine.includes(p)) pz+=10;
+  return pz;
 }
-// Gesamt-Multiplikator für ein Produkt: Beitragsbonus (global) × Rune (produktabhängig)
-function mult(p){
-  let m=1;
-  if($("#bonusOn").checked) m*=1+(Math.max(0,+$("#bonus").value||0))/100;
-  if(p) m*=runeFaktor(p);
-  return m;
+// Nur Beitragsbonus in Prozent (gilt global für Felder UND Gebäude)
+function beitragProzent(){
+  return $("#bonusOn").checked ? Math.max(0,+$("#bonus").value||0) : 0;
 }
+// Gesamt-Prozent für ein Produkt: Beitragsbonus + Rune, ADDIERT.
+function gesamtProzent(p){ return beitragProzent() + (p?runeProzent(p):0); }
+// Multiplikator (Faktor) – wirkt nur auf den Grundwert, NICHT auf die Bibliothek.
+function mult(p){ return 1 + gesamtProzent(p)/100; }
+// Faktor nur Beitragsbonus (für Produktions-Gebäude, die keine Rune haben)
+function beitragFaktor(){ return 1 + beitragProzent()/100; }
 
 function maxStufe(p){ return Math.max(...Object.keys(DATA[p].s).map(Number)); }
 
@@ -369,16 +373,20 @@ function stufeEFS(p,level){
 // ein Wert je nach Modus
 function wertVon(efs,modus){ return modus==="F"?efs[1]:modus==="S"?efs[2]:efs[0]; }
 
-// reale Produktion eines Produkts (roh, ohne Beitragsbonus; Bibliothek ist drin).
+// reale Produktion eines Produkts – Bonus (%) wirkt auf den GRUNDWERT, Bibliothek kommt als
+// fester Betrag obendrauf. mist bekommt KEINEN Prozent-Bonus (nur Mist-Bibliothek).
 function produktReal(p){
   const d=DATA[p];
+  const mm2=mult(p);                 // 1 + (Beitrag%+Rune%)/100
+  const b=bibBonus(p);               // Bibliothek-Betrag (Felder)
+  const bonus=w=>Math.round(w*mm2);  // Grundwert mit Prozent-Bonus
   let E=0,F=0,S=0,est=false,total=0;
   if(d.t==="fest"){
-    const n=state[p]?.menge||0, mod=d.nn?"E":(state[p]?.festmod||"E"), b=bibBonus(p);
+    const n=state[p]?.menge||0, mod=d.nn?"E":(state[p]?.festmod||"E");
     total=n;
-    if(mod==="F"){ F=(Math.round(d.w*F_FAK)+b)*n; est=true; }
-    else if(mod==="S"){ S=(Math.round(d.w*S_FAK)+b)*n; est=true; }
-    else E=(d.w+b)*n;
+    if(mod==="F"){ F=(bonus(Math.round(d.w*F_FAK))+b)*n; est=true; }
+    else if(mod==="S"){ S=(bonus(Math.round(d.w*S_FAK))+b)*n; est=true; }
+    else E=(bonus(d.w)+b)*n;
     return {E,F,S,est,total};
   }
   const felder=state[p]?.felder||[];
@@ -387,14 +395,18 @@ function produktReal(p){
   for(const f of felder){
     const anz=Math.max(1,f.n||1);
     total+=anz;
-    const efs=stufeEFS(p,f.l);
+    const row=d.s[String(f.l)];
+    if(!row){ continue; }
+    const ff=d.ff||F_FAK, sf=d.sf||S_FAK;
+    const gE=row[0], est0=row[1]==null;
+    const gF=est0?Math.round(gE*ff):row[1], gS=est0?Math.round(gE*sf):row[2];
     const mm=nn?"E":f.m;
-    if(mm==="F"){ F+=efs[1]*anz; if(efs[3])est=true; }
-    else if(mm==="S"){ S+=efs[2]*anz; if(efs[3])est=true; }
-    else E+=efs[0]*anz;
-    // Nebenprodukt Mist (am Level) + eigener 2-Band-Bibliothek-Bonus (je +1/Stufe)
+    if(mm==="F"){ F+=(bonus(gF)+b)*anz; if(est0)est=true; }
+    else if(mm==="S"){ S+=(bonus(gS)+b)*anz; if(est0)est=true; }
+    else E+=(bonus(gE)+b)*anz;
+    // Nebenprodukt Mist (am Level) + Mist-Bibliothek – KEIN Prozent-Bonus
     if(d.mist){
-      const mb=mistBibGlobal;  // gemeinsame Mist-Bibliothek für alle Mist-Sorten (0..3)
+      const mb=mistBibGlobal;
       mist += ((d.mist[String(f.l)]||0)+mb)*anz;
     }
   }
@@ -447,7 +459,6 @@ function bibRegler(p){
 // Baut die HTML einer Ernte-Kachel (Feld- oder Fest-Produkt), gibt {html, E,F,S} zurück
 function ernteKachelHTML(p){
     const d=DATA[p];
-    const m=mult(p);
     const {E,F,S,est,total,mist,mistName}=produktReal(p);
     const isOpen=offen===p;
 
@@ -498,7 +509,7 @@ function ernteKachelHTML(p){
     }
 
     // Kachel zeigt EINE Produktionssumme (alle Modi zusammengerechnet), immer gruen
-    const prodSumme=(E+F+S)*m;
+    const prodSumme=E+F+S;
     const spalten=[`<div class="v E"><span class="lab">Produktion</span><span class="n">${fmt(prodSumme)}</span></div>`];
     if(mist>0) spalten.push(`<div class="v MIST"><span class="lab"><img class="labpik" src="icons/mist.svg" alt="Mist"></span><span class="n">${fmt(mist)}</span></div>`);
 
@@ -509,7 +520,7 @@ function ernteKachelHTML(p){
       (est&&!d.nn?`<span class="est">Fein/Sofort genähert</span>`:``)+
       (isOpen?``:`<span class="tap">${total?"Tippen zum Bearbeiten":"Tippen zum Eingeben"}</span>`)+
       detail;
-    return {html, E:E*m, F:F*m, S:S*m, mist:mist||0, isOpen};
+    return {html, E, F, S, mist:mist||0, isOpen};
 }
 
 function bindInputs(){
@@ -714,7 +725,8 @@ function prodKachelHTML(p){
     // Einzelgebäude (konstant): n = Durchläufe, begrenzt durchs Level.
     const proGeb=(lvl,n)=>{
       const row=d.lv[String(lvl)]||d.lv[String(maxL)];
-      const ausgabe=row[0]+bibBon;
+      // Beitragsbonus wirkt auf den Grundwert, Bibliothek kommt als fester Betrag dazu
+      const ausgabe=Math.round(row[0]*beitragFaktor())+bibBon;
       const maxN=multi?99:maxDurchlaeufe(lvl);
       const nn=Math.min(maxN,Math.max(1,n||1));
       return {row, ausgabe, maxN, n:nn};
